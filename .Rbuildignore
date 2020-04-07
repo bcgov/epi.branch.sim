@@ -1,0 +1,6 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^epi\.branch\.sim\.Rproj$
+^README\.Rmd$
+^CONTRIBUTING\.md$
+^CODE_OF_CONDUCT\.md$
