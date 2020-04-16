@@ -315,8 +315,10 @@ draw_sec_infects_df <- function(state_df, sim.params, sim.status, initialize=FAL
   }
 }
 
-#' Draw serial intervals for each case's potential secondary infections from distribution
-#' defined in \code{sim.params$serial_int_params}
+#' Generate serial intervals for potential secondary infections
+#'
+#' Serial intervals for each case's potential secondary infections are drawn from
+#' distribution defined in \code{sim.params$serial_int_params}
 #'
 #' @param n                   Number of potential secondary infections for this case
 #' @param incubation_length   Incubation period of this case (used in skewed normal distribution only)

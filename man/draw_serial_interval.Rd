@@ -2,8 +2,7 @@
 % Please edit documentation in R/draw_distributions.R
 \name{draw_serial_interval}
 \alias{draw_serial_interval}
-\title{Draw serial intervals for each case's potential secondary infections from distribution
-defined in \code{sim.params$serial_int_params}}
+\title{Generate serial intervals for potential secondary infections}
 \usage{
 draw_serial_interval(n, incubation_length, sim.params)
 }
@@ -28,6 +27,6 @@ in \code{sim.params$serial_int_params}. This is what Hellewell uses.
 A vector of length n for serial intervals of the case's potential secondary infections
 }
 \description{
-Draw serial intervals for each case's potential secondary infections from distribution
-defined in \code{sim.params$serial_int_params}
+Serial intervals for each case's potential secondary infections are drawn from
+distribution defined in \code{sim.params$serial_int_params}
 }
