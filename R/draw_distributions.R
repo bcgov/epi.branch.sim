@@ -55,14 +55,70 @@ draw_symptomatic_status <- function(n, sim.params){
 #'                    Traced cases have their delay set to zero days.
 #'                    }
 #' @return A vector of length n for case onset-to-isolation period (double)
-draw_isolation_delay_period <- function(state_df, sim.params){
+draw_isolation_delay_period <- function(state_df, sim.params,
+                                        primary_state_df=NULL,
+                                        primary_case_ids=NULL){
   iso_delay_params <- sim.params$iso_delay_params
-  if (iso_delay_params$dist=='uniform_delay'){
+  if (iso_delay_params$dist=='BC'){
     n<-nrow(state_df)
-    # currently, 2-3 days if traced, 4-5 days if not
-    # so, uniformly sample between 2 and 3, then add 2 days if not traced
-    iso_delay <- runif(n,min=iso_delay_params$min,max=iso_delay_params$max)
-    iso_delay <- iso_delay + (1-state_df$is_traced)*iso_delay_params$delay
+    # Draw an isolation delay time assuming everyone is untraced at first,
+    iso_delay <- runif(n,
+                       min = iso_delay_params$untraced_min,
+                       max = iso_delay_params$untraced_max)
+    # Check if primary case info provided (only needed for traced cases)
+    if (!is.null(primary_state_df)){
+      # Get rows of primary_state_df matching primary cases
+      infector_df <- subset(primary_state_df,case_id %in% primary_case_ids)
+      # Calculate how many days between now and infector being isolated
+      # (may be negative if infector already isolated)
+      # HOWEVER, isolated cases shouldn't be causing infections so unlikely to be negative
+      infector_df$d_until_iso <- infector_df$incubation_length +
+        infector_df$isolation_delay -
+        infector_df$days_infected
+      # Modify isolation delay based on infector's isolation time, if traced OR
+      # if untraced & distancing
+      iso_delay2 <- vapply(X=seq_along(iso_delay), FUN=function(ii){
+        if (
+          state_df[ii,]$is_traced ||
+          (state_df[ii,]$is_traced_by_app && state_df[ii,]$is_trace_app_comply)
+        ){
+          # Get infector isolation time
+          d_until_primary_iso <- subset(infector_df,case_id==primary_case_ids[ii])$d_until_iso
+          # Get this case's symptom onset time
+          d_until_onset <- state_df$incubation_length[ii]
+          # Check if new case is traced by app and set appropriate trace delay values
+          if (state_df[ii,]$is_traced_by_app && state_df[ii,]$is_trace_app_comply){
+            # No delay in tracing, isolate secondary case at infector's isolation
+            trace_delay <- 0
+          } else {
+            # Draw a delay from the manual traced delay distribution
+            trace_delay <- runif(1,
+                                 min = iso_delay_params$traced_min,
+                                 max = iso_delay_params$traced_max)
+          }
+          # Rest of code/model expects iso_delay to be measured from symptom onset time
+          # But we want the traced_delay value to represent the days from the infector's
+          # isolation time. So we subtract off this case's symptom onset time and add
+          # the number of days until the primary is isolated.
+          # This can be negative, meaning we isolate before symptom onset
+          # SEE ALSO: draw_sec_infects() in this file
+          modified_delay <- trace_delay - d_until_onset + d_until_primary_iso
+          # Make sure the modified delay isn't somehow longer than the untraced delay
+          # (i.e. if Case A takes a very long time to isolate, Case B isn't traced yet
+          # anyhow, so it should just be treated as untraced and isolated at that point)
+          return( min(modified_delay, iso_delay[ii]) ) # NB: return is to vapply
+        } else{ # If not traced, then only update value if case is also distancing
+          if (state_df[ii,]$sd_factor < 1){ # the case is distancing
+            return(
+              runif(1,min = iso_delay_params$untraced_sd_min,max = iso_delay_params$untraced_sd_max)
+            )
+          } # not distancing, return original value without modification
+          return(iso_delay[ii]) # NB: return is to vapply
+        }
+      }, FUN.VALUE=999)
+      # Update iso_delay vector to account for tracing
+      iso_delay <- iso_delay2
+    }
   } else if (iso_delay_params$dist=='Hellewell'){
     n<-nrow(state_df)
     # Draw from Weibull distribution initially
@@ -71,16 +127,42 @@ draw_isolation_delay_period <- function(state_df, sim.params){
       shape=iso_delay_params$shape,
       scale=iso_delay_params$scale
     )
-    # Set delay to zero for traced cases
-    iso_delay <- iso_delay * (1-state_df$is.traced)
+
+    # Modify actual delay time based on tracing and status of primary case
+    # Only when primary_state_df provided (i.e. a secondary case)
+    if (!is.null(primary_state_df)){
+      # Get rows of primary_state_df matching primary cases
+      infector_df <- subset(primary_state_df,case_id %in% primary_case_ids)
+      # Calculate how many days between now and infector being isolated
+      infector_df$d_until_iso <- infector_df$incubation_length +
+        infector_df$isolation_delay -
+        infector_df$days_infected
+      # For each new case, determine the actual isolation delay
+      iso_delay2 <- vapply(X=seq_along(iso_delay), FUN=function(ii){
+        if (state_df[ii,]$is_traced){ # If traced, then check infector isolation time
+          d_until_onset <- state_df$incubation_length[ii]
+          d_until_pri_iso <- subset(infector_df,case_id==primary_case_ids[ii])$d_until_iso
+          # If secondary case onset is *after* primary's isolation time, delay set to 0
+          if (d_until_onset > d_until_pri_iso){
+            return(0) # NB: return is to vapply
+          } else{ # otherwise, delay is until primary case is isolated
+            return(d_until_pri_iso-d_until_onset) # NB: return is to vapply
+          }
+        } else{ # If not traced, then use drawn iso_delay value
+          return(iso_delay[ii]) # NB: return is to vapply
+        }
+      }, FUN.VALUE=999)
+      # Update iso_delay vector to account for tracing
+      iso_delay <- iso_delay2
+    }
   }
   return(iso_delay)
 }
 
-#' Determine whether a case is being traced by public health
+#' Determine whether a case is being manually traced by public health
 #'
-#' Draws a uniform random number and compares to trace probability (which can be variable or
-#' fixed) to determine whether a case is being traced or not.
+#' Draws a uniform random number and compares to trace probability to determine
+#' whether a case will be manually traced.
 #'
 #' The probability of a case being traced, \code{p.trace}, can either be a value that varies
 #' with cluster size (if \code{sim.params$vary.trace} is \code{TRUE}) or a constant value equal
@@ -88,11 +170,9 @@ draw_isolation_delay_period <- function(state_df, sim.params){
 #'
 #' When variable tracing based on cluster size is used, \code{n} is assumed to be the cluster size
 #' because it is assumed that this function would be called be \code{create_state_df} for all
-#' secondary infections together. The breakpoints in cluster size groupings are defined by
-#' \code{c(0,sim.params$cluster_breaks,Inf)} with intervals being closed on the left and open
-#' on the right. For instance, if \code{sim.params$cluster_breaks=c(10,25)} then \code{n=9} would
-#' be in the first interval, \code{n=10} would be in the second interval and \code{n=25} would be
-#' in the third interval.
+#' secondary infections together. The three possible variable tracing values are for cluster sizes of:
+#' less than 10 cases, 11-24 cases and 25 or more cases. The vector \code{sim.params$p.trace_vary}
+#' sets the trace probability for each of these three cluster sizes.
 #'
 #' @param n           Number of cases to consider
 #' @param sim.params  \code{sim.params} object (a list) containing simulation parameters, where
@@ -102,34 +182,76 @@ draw_isolation_delay_period <- function(state_df, sim.params){
 #'                    \item \code{sim.params$vary.trace}: Boolean to determine whether
 #'                    \code{p.trace} varies based on cluster size or whether a single constant
 #'                    value for \code{p.trace} is used.
-#'                    \item \code{sim.params$cluster_breaks}: Defines the breakpoints for
-#'                    different \code{p.trace} based on cluster size. Zero and Infinity as the
-#'                    lower and upper bounds are implied. Ignored if \code{sim.params$vary.trace}
-#'                    is \code{FALSE}.
-#'                    \item \code{sim.params$cluster_p.trace}: Defines the \code{p.trace} value for
-#'                    each cluster size group defined by \code{sim.params$cluster_breaks}. Length
-#'                    of this should be 1 larger than the length of \code{sim.params$cluster_breaks}.
-#'                    Ignored if \code{sim.params$vary.trace} is \code{FALSE}.
-#'                    \item \code{sim.params$p.trace}: If \code{sim.params$vary.trace} is \code{FALSE}
-#'                    then this is the constant \code{p.trace} value used at all times. Ignored if
-#'                    \code{sim.params$vary.trace} is \code{TRUE}.
+#'                    \item \code{sim.params$p.trace_vary}: Defines the \code{p.trace} value for
+#'                    each cluster size group. Ignored if \code{sim.params$vary.trace} is \code{FALSE}.
+#'                    \item \code{sim.params$p.trace}: Constant \code{p.trace} value used at all times.
+#'                    Ignored if \code{sim.params$vary.trace} is \code{TRUE}.
 #'                    }
-#' @return A vector of length n for case onset-to-isolation period (double)
+#' @return A boolean vector of length n for each case's manual tracing status
 draw_traced_status <- function(n, sim.params){
-  if (sim.params$vary.trace){ # use a variable tracing model
-    # Determine which cluster group n is in
-    cluster_size_ind <- cut(n,
-                            c(0,sim.params$cluster_breaks,Inf),
-                            right=FALSE,
-                            labels=1:length(sim.params$cluster_p.trace))
-    # Assign p_trace based on cluster group size
-    p_trace<-sim.params$cluster_p.trace[cluster_size_ind]
-    #
+  if (sim.params$vary.trace){
+    if(n<10){
+      p_trace<-sim.params$p.trace_vary[1]
+    }
+    else if(n<25){
+      p_trace<-sim.params$p.trace_vary[2]
+    } else{
+      p_trace<-sim.params$p.trace_vary[3]
+    }
     return(runif(n) < p_trace)
   } else{ # otherwise, use fixed tracing value
     return(runif(n) < sim.params$p.trace)
   }
+}
 
+#' Determine whether a case is using a contact tracing app
+#'
+#' Draws a uniform random number and compares to app usage probability to determine
+#' whether a case is an app user. For a case to be traced via the app, the
+#' secondary case and the primary/index case must both be app users.
+#'
+#' @param n           Number of cases to consider
+#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters, here,
+#'                    the \code{sim.params$p.trace_app} value is used as the probability of
+#'                    contact tracing app usage.
+#' @return A boolean vector of length n for each case's app usage status
+draw_trace_app_user_status <- function(n, sim.params){
+  return(runif(n) < sim.params$p.trace_app)
+}
+
+#' Helper function to check primary and secondary trace_app_user status
+#'
+#' For a case to be traced via the app, the secondary case and the
+#' primary/index case must both be app users.
+#'
+#' @param state_df          \code{state_df} object for the new cases
+#' @param primary_state_df  The \code{state_df} object for the index/primary cases.
+#' @param primary_case_ids  A list of case_ids for the primary cases.
+#' @return A boolean vector of length n for each case's app tracing status
+draw_traced_by_app <- function(state_df, primary_state_df, primary_case_ids){
+  infector_df <- subset(primary_state_df,case_id %in% primary_case_ids)
+  infector_traced_by_app <- vapply(seq(1:nrow(state_df)),
+                                   function(ii){
+                                     subset(infector_df, case_id==primary_case_ids[ii])$is_trace_app_user
+                                   },
+                                   TRUE)
+  return(state_df$is_trace_app_user & infector_traced_by_app)
+}
+
+#' Determine whether a case will comply with tracing app instructions
+#'
+#' Draws a uniform random number and compares to app compliance probability. This status
+#' is determined (but never used) even for cases that aren't traced by the app.
+#'
+#' @param state_df    \code{state_df} object for the new cases
+#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters, here,
+#'                    the \code{sim.params$p.trace_app_comp} value is used as the probability of
+#'                    contact tracing app compliance.
+#' @return A boolean vector of length n for each case's app compliance status
+draw_trace_app_compliance <- function(state_df, sim.params){
+  n <- nrow(state_df)
+  rng <- runif(n) < sim.params$p.trace_app_comp
+  return(state_df$is_trace_app_user & rng)
 }
 
 #' Determine infection length of new cases
@@ -146,50 +268,66 @@ draw_infection_length <- function(n, sim.params){
 
 #' Assign social distancing behaviour to new cases
 #'
-#' Input parameters determine the social distancing behaviour for different population groups
-#' as well as the probability of a new case being in a given group. Distancing behaviour is
-#' defined as a number between 0 and 1, representing the relative number of contacts the
-#' subject encounters after distancing begins (i.e. 0.6 means the subject reduces contact
-#' to 60% of the normal amount.) There is also a parameter to determine the simulation day
-#' number where this behaviour begins.
+#' Distancing behaviour is defined as a number between 0 and 1, representing the
+#' relative number of contacts the subject encounters (i.e. 0.6 means the subject
+#' reduces contact to 60% of the non-distancing population.)
+#'
+#' Current implementation assume that either the entire population has the same
+#' distancing behaviour or that the population can be divided into two groups:
+#' one that is practicing distancing and one that is not. User provides parameters such
+#' as the fraction of the general population that is distancing and the relative contact
+#' rate of the distancing population. This relative contact rate can change once, at the
+#' time point provided by the user.
+#'
+#' Note: The ratio of distancers to non-distancers of new cases is not the same as the
+#' ratio amongst the general population (user-provided values). This is because new cases
+#' do not arise from the general population but from the population that is in contact with
+#' others. Therefore, the fraction of distancers being infected would generally be lower than
+#' the fraction of distancers in the general population.
 #'
 #' @param n_cases     Number of cases required
 #' @param sim.params  \code{sim.params} object (a list) containing simulation parameters.
 #'                    Here, the sim.params$social_dist_params object contains the information
 #'                    needed. This list should have the following entries:
 #'                    \itemize{
-#'                    \item \code{sd_factors}: A list of social distancing factors with length
-#'                    equal to the number of different social distancing groups.
-#'                    \item \code{p.group}: A list of probabilities of being in one of the social
-#'                    distancing groups. Length should be the same as \code{sd_factors}.
-#'                    \item \code{delay}: The simulation day number where social distancing
-#'                    begins. All new cases prior to this time will have no distancing factor
-#'                    applied (i.e. factor is set to 1).
+#'                    \item \code{sd_pop_frac}: A number for the fraction of the general population
+#'                    that is practicing distancing. Set this to 0 or 1 to have everyone act the same.
+#'                    \item \code{sd_contact_rate1}: The contact rate of the distancing population before
+#'                    time \code{sd_change_t}. Set this to 1 to have the distancing population not begin
+#'                    distancing until a later time.
+#'                    \item \code{sd_contact_rate2}: The contact rate of the distancing population after
+#'                    time \code{sd_change_t}. Set this to 1 to have the distancing population stop
+#'                    distancing at a certain time.
+#'                    \item \code{sd_change_t}: The simulation time where the distancing population's
+#'                    contact rate changes. Set this to 0 or a very high number to have only one rate.
 #'                    }
 #' @param sim.status  \code{sim.status} object (a list) containing simulation state vector
-#' @param initialize  A boolean indicating whether these cases are the first cases of the
-#'                    simulation (sets sd_factor to 1). Defaults to \code{FALSE}.
-#' @param import      A boolean indicating whether these new cases are imported cases instead
-#'                    of secondary infections. Imported cases do not practice social distancing
-#'                    (sd_factor set to 1). Defaults to \code{FALSE}.
 #' @return A vector of length n for the sd_factor (double)
-draw_sd_factor <- function(n_cases, sim.params, sim.status, initialize=FALSE, import=FALSE){
+draw_sd_factor <- function(n_cases, sim.params, sim.status){
   sd_params <- sim.params$social_dist_params
-  n_groups <- length(sd_params$sd_factors)
-  if (initialize){ # no social distancing for initial cases
-    sd_factor<-rep(1,n_cases)
+  # Allows for a different contact rate for the SD group before and after a change time
+  if (sim.status$t < sd_params$sd_change_t){
+    sd_contact_rate <- sd_params$sd_contact_rate1  # rate before change time
+  } else {
+    sd_contact_rate <- sd_params$sd_contact_rate2  # rate after change time
   }
-  else if (import){ # no social distancing for imported cases
-    sd_factor<-rep(1,n_cases)
-  }
-  else if (sim.status$t < sd_params$delay){ # no social distancing until delay time
-    sd_factor<-rep(1,n_cases)
-  } # After delay time...
-  else if (n_groups==1){
-    sd_factor<-rep(sd_params$sd_factors, n_cases)
+
+  # One population only:
+  if (sd_params$sd_pop_frac==1){ # Everyone is (or is not) distancing (i.e. just one population)
+    sd_factor<-rep(sd_contact_rate, n_cases)
   }
   else{
-    sd_factor <- sample(x=sd_params$sd_factors, size=n_cases, prob=sd_params$p.group, replace=TRUE)
+    # For two groups, need to factor in how the groups encounter each other in order
+    # to properly assign probabilities of **infecting** someone in a given group
+    # Ratio of distancer to non-distancer: epsilon*lambda/(1-epsilon)
+    # epsilion = fraction of distancing pop, lambda = contact rate of distancing pop.
+    eps <- sd_params$sd_pop_frac
+    lambda <- sd_contact_rate
+    prob_sd <- eps*lambda / (eps*lambda + 1-eps)
+    sd_factor <- sample(x = c(lambda, 1.0),
+                        size = n_cases,
+                        prob = c(prob_sd, 1-prob_sd),
+                        replace=TRUE)
   }
   return(sd_factor)
 }
@@ -223,15 +361,11 @@ draw_sd_factor <- function(n_cases, sim.params, sim.status, initialize=FALSE, im
 #'                    used to determine the number of potential secondary infections.
 #'                    }
 #' @param sim.status  \code{sim.status} object (a list) containing simulation state vector
-#' @param initialize  A boolean indicating whether these cases are the first cases of the
-#'                    simulation, which is passed to \code{draw_sd_factor}.
-#'                    Defaults to \code{FALSE}.
 #' @param import      A boolean indicating whether these new cases are imported cases instead
-#'                    of secondary infections, which is passed to \code{draw_sd_factor}.
+#'                    of secondary infections. These cases may be required to self-isolate.
 #'                    Defaults to \code{FALSE}.
 #' @return A list containing
 #' \itemize{
-#'   \item \code{sd_factor} - A vector of sd_factor for each case (double)
 #'   \item \code{n} - A vector with number of accepted secondary infections for each case (int)
 #'   \item \code{serial} - A list where each entry corresponds to each case and contains a
 #'   vector of serial intervals of accepted secondary infections.
@@ -239,23 +373,21 @@ draw_sd_factor <- function(n_cases, sim.params, sim.status, initialize=FALSE, im
 #'   vector of serial intervals of rejected secondary infections, for debugging.
 #' }
 #'
-draw_sec_infects_df <- function(state_df, sim.params, sim.status, initialize=FALSE, import=FALSE){
-  sec_infect_params <- sim.params$sec_infect_params
+draw_sec_infects_df <- function(state_df, sim.params, sim.status){
   n_cases = nrow(state_df)
-  if (sec_infect_params$type=='Hellewell'){
+  if (sim.params$sec_infect_params$type=='Hellewell'){
     # Following Hellewell et al, for each case, determine
     # number of sec. infections and serial interval of each sec. infection
     col_names <- c('n_infect', 'serial_int')
-    ###sec_infects_df <- data.frame(matrix(nrow=n_cases,ncol=n_cols, dimnames=list(NULL,col_names)))
+    n_cols <- length(col_names)
     # Determine which social distancing group cases belong to
-    sd_factor <- draw_sd_factor(n_cases, sim.params, sim.status, initialize=initialize, import=import)
+    sd_factor <- state_df$sd_factor
     # Determine number of secondary infections drawn from neg. binomial
     mean_infect <- sim.params$R0 * sd_factor
-    disp_infect <- sec_infect_params$disp
-    #cat(sprintf("check n_cases = %f,\tmu = %f,\t size=%f \n",n_cases,mean_infect,disp_infect))
+    disp_infect <- sim.params$sec_infect_params$disp
     n.infect <- rnbinom(n_cases, mu=mean_infect, size=disp_infect)
     # Determine serial interval of each secondary infection for each infector source case
-    if (sim.params$serial_int_params$dist=='gamma'){
+    if (sim.params$serial_int_params$dist=='gamma'){ # BC case
       serial.int <- mapply(draw_serial_interval, # FUN to be called on each X
                            n.infect, # X to loop over
                            MoreArgs=list(sim.params=sim.params), # additional required input for FUN
@@ -269,49 +401,66 @@ draw_sec_infects_df <- function(state_df, sim.params, sim.status, initialize=FAL
     }
     # Sort serial intervals in ascending order
     serial.int<-lapply(serial.int,sort)
-    ## Determine the last day contagious for each case
+    ## Determine the days that each case is contagious
+    # First day based on whether it's imported (imported cases may be required to isolate)
+    if (import){
+      import_params <- sim.params$import_params
+      first_day_contagious <- sample(x=import_params$iso_lengths,
+                                     size=n_cases,
+                                     prob=import_params$iso_p.group,
+                                     replace=TRUE)
+    } else {
+      first_day_contagious <-rep(0,n_cases)
+    }
     # Switches for each contagious scenario
     is_T_and_S <- state_df$is_traced * state_df$is_symptomatic # traced and symptomatic
     is_T_and_nS <- state_df$is_traced * (1-state_df$is_symptomatic) # traced and not sympt
     is_nT_and_S <- (1-state_df$is_traced) * state_df$is_symptomatic # not traced and sympt
     is_nT_and_nS <- (1-state_df$is_traced) * (1-state_df$is_symptomatic) # not traced and not sympt
     # Length of contagious period for each scenario
-    T_and_S_time <- state_df$incubation_length # isolated right after symptoms appear
+    T_and_S_time <- state_df$incubation_length + state_df$isolation_delay # delay for primary not yet isolated folded into isolation delay
     T_and_nS_time <- state_df$infection_length # no isolation if no symptoms
     nT_and_S_time <- state_df$incubation_length + state_df$isolation_delay # isolated some time after symptoms
     nT_and_nS_time <- state_df$infection_length # no isolation if no symptoms
     last_day_contagious <- is_T_and_S   * T_and_S_time   +
-                           is_T_and_nS  * T_and_nS_time  +
-                           is_nT_and_S  * nT_and_S_time  +
-                           is_nT_and_nS * nT_and_nS_time
-    # Find index of last infection that will happen
-    last_infect_ind <- lapply(seq_along(serial.int), function(ii,serial,last_day){
-      sum(serial[[ii]]<last_day[ii]) # N.B. serial is sorted!
-    }, serial=serial.int, last_day=last_day_contagious)
-    # Update number of infections that will occur
-    n.infect<-unlist(last_infect_ind) # turn it back into a vector
+      is_T_and_nS  * T_and_nS_time  +
+      is_nT_and_S  * nT_and_S_time  +
+      is_nT_and_nS * nT_and_nS_time
+    # Ensure no "last day contagious" is larger than infection_length days (would be removed as inactive)
+    longer_than_inf_len <- last_day_contagious > state_df$infection_length
+    last_day_contagious[longer_than_inf_len] <- state_df$infection_length[longer_than_inf_len]
+    # Also, to avoid weird negative values in case somehow the isolated infector still caused
+    # this case to happen, make all negative values be zero (would not allow any sec infects)
+    neg_last_day <- last_day_contagious < 0
+    last_day_contagious[neg_last_day] <- 0
     # Split the serial interval list.
     # Keep the valid infections for model, store the rest for record keeping
-    serial_keep <- lapply(seq_along(serial.int), function(ii, serial, last_ind){
-      if (last_ind[ii]==0){
-        return(numeric(0))
-      }
-      else if (last_ind[ii]==length(serial[[ii]])){
-        return(serial[[ii]])
-      } else {
-        return(serial.int[[ii]][1:last_ind[ii]])
-      }
-    }, serial=serial.int, last_ind=n.infect)
-    serial_reject <- lapply(seq_along(serial.int), function(ii, serial, last_ind){
-      if (last_ind[ii]==0 | last_ind[[ii]]==length(serial[[ii]])){
-        return(numeric(0))
-      }
-      else {
-        return(serial.int[[ii]][(last_ind[ii]+1):length(serial.int[[ii]])])
-      }
-    }, serial=serial.int, last_ind=n.infect)
+    serial_keep <- lapply(
+      seq_along(serial.int),
+      function(ii, serial, first_day, last_day){
+        index_to_keep <- (serial[[ii]] > first_day[ii]) &
+          (serial[[ii]] < last_day[ii])
+        return(serial[[ii]][index_to_keep])
+      },
+      serial=serial.int,
+      first_day=first_day_contagious,
+      last_day=last_day_contagious
+    )
+    serial_reject <- lapply(
+      seq_along(serial.int),
+      function(ii, serial, first_day, last_day){
+        index_to_keep <- (serial[[ii]] > first_day[ii]) &
+          (serial[[ii]] < last_day[ii])
+        return(serial[[ii]][!index_to_keep])
+      },
+      serial=serial.int,
+      first_day=first_day_contagious,
+      last_day=last_day_contagious
+    )
+    # Get number of actual infections
+    n.infect <- sapply(serial_keep,length)
     # Will probably move this outside of the if-block when other methods added
-    return(list(sd_factor=sd_factor,n=n.infect,serial=serial_keep,non_infects=serial_reject))
+    return(list(n=n.infect,serial=serial_keep,non_infects=serial_reject))
   }
 }
 
