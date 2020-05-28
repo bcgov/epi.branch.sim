@@ -400,7 +400,7 @@ draw_sd_factor <- function(n_cases, sim.params, sim.status){
 #'   vector of serial intervals of rejected secondary infections, for debugging.
 #' }
 #'
-draw_sec_infects_df <- function(state_df, sim.params, sim.status){
+draw_sec_infects_df <- function(state_df, sim.params, sim.status, import=FALSE){
   n_cases = nrow(state_df)
   if (sim.params$sec_infect_params$type=='Hellewell'){
     # Following Hellewell et al, for each case, determine
