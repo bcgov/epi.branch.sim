@@ -2,7 +2,7 @@
 % Please edit documentation in R/draw_distributions.R
 \name{draw_traced_status}
 \alias{draw_traced_status}
-\title{Determine whether a case is being traced by public health}
+\title{Determine whether a case is being manually traced by public health}
 \usage{
 draw_traced_status(n, sim.params)
 }
@@ -16,25 +16,18 @@ traced (\code{p.trace}) are found within:
 \item \code{sim.params$vary.trace}: Boolean to determine whether
 \code{p.trace} varies based on cluster size or whether a single constant
 value for \code{p.trace} is used.
-\item \code{sim.params$cluster_breaks}: Defines the breakpoints for
-different \code{p.trace} based on cluster size. Zero and Infinity as the
-lower and upper bounds are implied. Ignored if \code{sim.params$vary.trace}
-is \code{FALSE}.
-\item \code{sim.params$cluster_p.trace}: Defines the \code{p.trace} value for
-each cluster size group defined by \code{sim.params$cluster_breaks}. Length
-of this should be 1 larger than the length of \code{sim.params$cluster_breaks}.
-Ignored if \code{sim.params$vary.trace} is \code{FALSE}.
-\item \code{sim.params$p.trace}: If \code{sim.params$vary.trace} is \code{FALSE}
-then this is the constant \code{p.trace} value used at all times. Ignored if
-\code{sim.params$vary.trace} is \code{TRUE}.
+\item \code{sim.params$p.trace_vary}: Defines the \code{p.trace} value for
+each cluster size group. Ignored if \code{sim.params$vary.trace} is \code{FALSE}.
+\item \code{sim.params$p.trace}: Constant \code{p.trace} value used at all times.
+Ignored if \code{sim.params$vary.trace} is \code{TRUE}.
 }}
 }
 \value{
-A vector of length n for case onset-to-isolation period (double)
+A boolean vector of length n for each case's manual tracing status
 }
 \description{
-Draws a uniform random number and compares to trace probability (which can be variable or
-fixed) to determine whether a case is being traced or not.
+Draws a uniform random number and compares to trace probability to determine
+whether a case will be manually traced.
 }
 \details{
 The probability of a case being traced, \code{p.trace}, can either be a value that varies
@@ -43,9 +36,7 @@ to \code{sim.params$p.trace} if \code{sim.params$vary.trace} is \code{FALSE}.
 
 When variable tracing based on cluster size is used, \code{n} is assumed to be the cluster size
 because it is assumed that this function would be called be \code{create_state_df} for all
-secondary infections together. The breakpoints in cluster size groupings are defined by
-\code{c(0,sim.params$cluster_breaks,Inf)} with intervals being closed on the left and open
-on the right. For instance, if \code{sim.params$cluster_breaks=c(10,25)} then \code{n=9} would
-be in the first interval, \code{n=10} would be in the second interval and \code{n=25} would be
-in the third interval.
+secondary infections together. The three possible variable tracing values are for cluster sizes of:
+less than 10 cases, 11-24 cases and 25 or more cases. The vector \code{sim.params$p.trace_vary}
+sets the trace probability for each of these three cluster sizes.
 }

@@ -9,7 +9,9 @@ create_state_df(
   sim.params,
   sim.status,
   initialize = FALSE,
-  import = FALSE
+  import = FALSE,
+  primary_state_df = NULL,
+  primary_case_ids = NULL
 )
 }
 \arguments{
@@ -20,10 +22,19 @@ create_state_df(
 \item{sim.status}{The \code{sim.status} state vector}
 
 \item{initialize}{A boolean indicating whether these cases are the first cases of the
-simulation. Defaults to \code{FALSE}.}
+simulation. Defaults to \code{FALSE}. Initial cases are never traced.}
 
 \item{import}{A boolean indicating whether these new cases are imported cases instead
-of secondary infections. Defaults to \code{FALSE}.}
+of secondary infections. Defaults to \code{FALSE}. Imported cases are never
+app users and are never traced.}
+
+\item{primary_state_df}{When generating a \code{state_df} object for secondary infections, this
+parameter should be the \code{state_df} object for the index/primary cases.
+This should be \code{NULL} when there is no primary case. Defaults to \code{NULL}.}
+
+\item{primary_case_ids}{When generating a \code{state_df} object for secondary infections, this
+parameter should be a list of case_ids for the primary cases.
+This should be \code{NULL} when there is no primary case. Defaults to \code{NULL}.}
 }
 \value{
 A \code{state_df} dataframe object
@@ -41,6 +52,7 @@ The new \code{state_df} object is merged with the main \code{state_df} within
 \code{\link{step_simulation}}.
 
 The columns of this dataframe are: \code{case_id}, \code{status}, \code{is_traced},
+\code{is_trace_app_user}, \code{is_trace_app_comply}, \code{is_traced_by_app},
 \code{is_symptomatic}, \code{days_infected}, \code{incubation_length},
 \code{isolation_delay}, \code{infection_length}, \code{sd_factor},
 \code{n_sec_infects}, and \code{serial_intervals}. The meaning of these columns

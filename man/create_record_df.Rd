@@ -39,6 +39,7 @@ The new \code{rec_df} object is merged with the main \code{rec_df} within
 \code{\link{step_simulation}}.
 
 The columns of this dataframe are: \code{case_id}, \code{source}, \code{is_traced},
+\code{is.trace_app_user}, \code{is_traced_by_app}, \code{is.trace_app_comply},
 \code{is_symptomatic}, \code{d.incub}, \code{d.iso_delay}, \code{d.infection},
 \code{sd_factor}, \code{n_sec_infects}, \code{d.serial_ints}, \code{t.inf},
 \code{t.symp}, \code{t.iso}, \code{t.inact}, \code{cases_inf}, \code{s.status},

@@ -2,7 +2,7 @@
 % Please edit documentation in R/generate_new_infections.R
 \name{generate_imported_infections}
 \alias{generate_imported_infections}
-\title{Adds imported infections (new cases) to simulation}
+\title{Adds imported infections to simulation}
 \usage{
 generate_imported_infections(sim.params, sim.status)
 }
@@ -20,9 +20,28 @@ will be recorded in \code{state_df} and \code{record_df}. For now, this will alw
 }
 }
 \description{
-The daily risk of imported infections is defined from an external data file which
-contains the mean number of infected cases arriving per day. This risk level is
-loaded into the simulation as \code{sim.params$import_params}. This function "loads"
-the infections into the simulation at integer time steps, drawing a number of new
-infections as Poisson with mean equal to the daily risk.
+The number of imported infections may be a deterministic or stochastic value.
+}
+\details{
+The list object \code{sim.params$import_params} determines how imported cases are
+added to the simulation. The following import types are supported, which is chosen by
+\code{sim.params$import_params$type}:
+\describe{
+\item{\code{type}="None" or "none"}{No cases are imported.}
+
+\item{\code{type}="daily_risk"}{Each day, the number of imported cases is drawn from a Poisson
+distribution with mean equal to the daily risk. The daily risk is given by a vector defined by
+\code{sim.params$import_params$risk}, which should have length equal to the number of days in the
+simulation.}
+
+\item{\code{type}="constant"}{Each day, the number of imported cases is equal to a constant value, set
+by \code{sim.params$import_params$rate}.}
+
+\item{\code{type}="constant_two_phase"}{Same as the above, but with two possible constant values. For
+times prior to \code{sim.params$import_params$delay}, the rate is \code{sim.params$import_params$rate1}.
+After this time, the rate is \code{sim.params$import_params$rate2}.}
+
+\item{\code{type}="poisson"}{Each day, the number of imported cases is drawn from a Poisson distribution
+with mean set by \code{sim.params$import_params$rate}.}
+}
 }

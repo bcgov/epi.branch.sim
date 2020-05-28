@@ -9,8 +9,8 @@ initialize_sim_params(
   infect.dur,
   vary.trace,
   p.trace,
-  cluster_breaks,
-  cluster_p.trace,
+  p.trace_app,
+  p.trace_app_comp,
   p.symp,
   dt,
   incub_params,
@@ -34,8 +34,11 @@ period, unless the case is isolated. See \code{\link{draw_infection_length}}}
 based on the number of new cases in a cluster.
 See \code{\link{draw_traced_status}}}
 
-\item{p.trace, cluster_breaks, cluster_p.trace}{Parameters determining contact tracing
-probability. See \code{\link{draw_traced_status}}}
+\item{p.trace}{Probability that a case will be manually traced.}
+
+\item{p.trace_app}{Probability that a case will be a contact tracing app user.}
+
+\item{p.trace_app_comp}{Probability that a case would comply with contact tracing app recommendations.}
 
 \item{p.symp}{Probability that a case is symptomatic.
 Used in \code{\link{draw_symptomatic_status}}.}
@@ -48,7 +51,7 @@ See \code{\link{draw_incubation_period}}.}
 \item{serial_int_params}{Parameters for distribution of serial intervals.
 See \code{\link{draw_serial_interval}}.}
 
-\item{iso_delay_params}{Parameters for distribution of delay from symptom onset to isolation.
+\item{iso_delay_params}{Parameters for distribution of delay to isolation.
 See \code{\link{draw_isolation_delay_period}}.}
 
 \item{sec_infect_params}{Parameters to model secondary infections.

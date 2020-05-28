@@ -2,10 +2,14 @@
 % Please edit documentation in R/draw_distributions.R
 \name{draw_isolation_delay_period}
 \alias{draw_isolation_delay_period}
-\title{Draw onset-to-isolation periods for new cases from distribution
-defined in \code{sim.params$iso_delay_params}}
+\title{Draw delay to isolation periods for new cases}
 \usage{
-draw_isolation_delay_period(state_df, sim.params)
+draw_isolation_delay_period(
+  state_df,
+  sim.params,
+  primary_state_df = NULL,
+  primary_case_ids = NULL
+)
 }
 \arguments{
 \item{state_df}{\code{state_df} object for the simulation}
@@ -14,18 +18,46 @@ draw_isolation_delay_period(state_df, sim.params)
 all of the information needed to describe the distribution is found within
 \code{sim.params$iso_delay_params}. Current distributions possible are:
 \itemize{
-\item \code{uniform_delay}: Delay is drawn from uniform distribution with
-attributes "min" and "max" given in \code{sim.params$iso_delay_params}.
-for traced cases. Untraced cases have a further delay of "delay" days.
+\item \code{uniform}: Delay is drawn from uniform distributions with
+attributes "min" and "max" given in \code{sim.params$iso_delay_params} for
+each type of case. Min/Max values to be provided are:
+\itemize{
+\item \code{iso_delay_traced_[min|max]}: Range for manually traced cases
+\item \code{iso_delay_untraced_[min|max]}: Range for untraced cases from the
+non-distancing population.
+\item \code{iso_delay_untraced_sd_[min|max]}: Rnage for untraced cases from
+the distancing population (any case with sd_factor less than 1).
+}
+Cases traced by the app (require both index and secondary cases to be app users
+\emph{and} for the secondary case to be app-compliant) have a zero day delay.
 \item \code{Hellewell}: Delay is drawn from a Weibull distribution with
 attributes "shape" and "scale" given in \code{sim.params$iso_delay_params}.
 Traced cases have their delay set to zero days.
 }}
+
+\item{primary_state_df}{The \code{state_df} object for the index/primary cases. Defaults to \code{NULL}.
+Only required for traced cases (i.e. not needed when generating initial or
+imported cases).}
+
+\item{primary_case_ids}{A list of case_ids for the primary cases. Not required for initial or imported
+cases. Defaults to \code{NULL}.}
 }
 \value{
-A vector of length n for case onset-to-isolation period (double)
+A vector of length n for case delay to isolation, measured from start of symptom onset (double)
 }
 \description{
-Draw onset-to-isolation periods for new cases from distribution
-defined in \code{sim.params$iso_delay_params}
+The number of days between symptom onset and isolation, which may be negative if isolation
+occurs prior to symptom onset (as sometimes the case with traced cases).
+}
+\details{
+Within the list object \code{sim.params$iso_delay_params}, the user can define several delay
+periods based on tracing type, tracing status, and whether the case is practicing distancing.
+Traced cases have their delays measured from the index case's isolation time, so traced cases
+may isolate prior to their own symptom onset. Untraced cases have delays measured from the start
+of their own symptom onset. The untraced timeline is always considered for traced cases, so that
+if a traced case would have been isolated earlier just because of their symptom onset timeline,
+they would isolate at this earlier time.
+
+Although this function returns the number of days between symptom onset and isolation, the delay
+returned by this function may be negative if isolation occurs prior to symptom onset.
 }

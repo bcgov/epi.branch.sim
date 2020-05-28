@@ -4,13 +4,7 @@
 \alias{draw_sec_infects_df}
 \title{Stage secondary infections when new cases are generated}
 \usage{
-draw_sec_infects_df(
-  state_df,
-  sim.params,
-  sim.status,
-  initialize = FALSE,
-  import = FALSE
-)
+draw_sec_infects_df(state_df, sim.params, sim.status)
 }
 \arguments{
 \item{state_df}{\code{state_df} object for the newly generated cases}
@@ -32,18 +26,13 @@ used to determine the number of potential secondary infections.
 
 \item{sim.status}{\code{sim.status} object (a list) containing simulation state vector}
 
-\item{initialize}{A boolean indicating whether these cases are the first cases of the
-simulation, which is passed to \code{draw_sd_factor}.
-Defaults to \code{FALSE}.}
-
 \item{import}{A boolean indicating whether these new cases are imported cases instead
-of secondary infections, which is passed to \code{draw_sd_factor}.
+of secondary infections. These cases may be required to self-isolate.
 Defaults to \code{FALSE}.}
 }
 \value{
 A list containing
 \itemize{
-\item \code{sd_factor} - A vector of sd_factor for each case (double)
 \item \code{n} - A vector with number of accepted secondary infections for each case (int)
 \item \code{serial} - A list where each entry corresponds to each case and contains a
 vector of serial intervals of accepted secondary infections.

@@ -4,13 +4,7 @@
 \alias{draw_sd_factor}
 \title{Assign social distancing behaviour to new cases}
 \usage{
-draw_sd_factor(
-  n_cases,
-  sim.params,
-  sim.status,
-  initialize = FALSE,
-  import = FALSE
-)
+draw_sd_factor(n_cases, sim.params, sim.status)
 }
 \arguments{
 \item{n_cases}{Number of cases required}
@@ -19,32 +13,39 @@ draw_sd_factor(
 Here, the sim.params$social_dist_params object contains the information
 needed. This list should have the following entries:
 \itemize{
-\item \code{sd_factors}: A list of social distancing factors with length
-equal to the number of different social distancing groups.
-\item \code{p.group}: A list of probabilities of being in one of the social
-distancing groups. Length should be the same as \code{sd_factors}.
-\item \code{delay}: The simulation day number where social distancing
-begins. All new cases prior to this time will have no distancing factor
-applied (i.e. factor is set to 1).
+\item \code{sd_pop_frac}: A number for the fraction of the general population
+that is practicing distancing. Set this to 0 or 1 to have everyone act the same.
+\item \code{sd_contact_rate1}: The contact rate of the distancing population before
+time \code{sd_change_t}. Set this to 1 to have the distancing population not begin
+distancing until a later time.
+\item \code{sd_contact_rate2}: The contact rate of the distancing population after
+time \code{sd_change_t}. Set this to 1 to have the distancing population stop
+distancing at a certain time.
+\item \code{sd_change_t}: The simulation time where the distancing population's
+contact rate changes. Set this to 0 or a very high number to have only one rate.
 }}
 
 \item{sim.status}{\code{sim.status} object (a list) containing simulation state vector}
-
-\item{initialize}{A boolean indicating whether these cases are the first cases of the
-simulation (sets sd_factor to 1). Defaults to \code{FALSE}.}
-
-\item{import}{A boolean indicating whether these new cases are imported cases instead
-of secondary infections. Imported cases do not practice social distancing
-(sd_factor set to 1). Defaults to \code{FALSE}.}
 }
 \value{
 A vector of length n for the sd_factor (double)
 }
 \description{
-Input parameters determine the social distancing behaviour for different population groups
-as well as the probability of a new case being in a given group. Distancing behaviour is
-defined as a number between 0 and 1, representing the relative number of contacts the
-subject encounters after distancing begins (i.e. 0.6 means the subject reduces contact
-to 60\% of the normal amount.) There is also a parameter to determine the simulation day
-number where this behaviour begins.
+Distancing behaviour is defined as a number between 0 and 1, representing the
+relative number of contacts the subject encounters (i.e. 0.6 means the subject
+reduces contact to 60\% of the non-distancing population.)
+}
+\details{
+Current implementation assume that either the entire population has the same
+distancing behaviour or that the population can be divided into two groups:
+one that is practicing distancing and one that is not. User provides parameters such
+as the fraction of the general population that is distancing and the relative contact
+rate of the distancing population. This relative contact rate can change once, at the
+time point provided by the user.
+
+Note: The ratio of distancers to non-distancers of new cases is not the same as the
+ratio amongst the general population (user-provided values). This is because new cases
+do not arise from the general population but from the population that is in contact with
+others. Therefore, the fraction of distancers being infected would generally be lower than
+the fraction of distancers in the general population.
 }
