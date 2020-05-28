@@ -14,6 +14,7 @@
 #'   \item \code{new_sec_cases} - Number of new secondary infections generated in this time step
 #'   \item \code{new_imp_cases} - Number of new imported infectoins generated in this time step
 #' }
+#' @export
 step_simulation <- function(sim.status, state_df, rec_df, sim.params){
   # Increment time
   sim.status$t <- sim.status$t + sim.params$dt

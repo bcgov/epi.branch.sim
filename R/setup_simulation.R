@@ -37,6 +37,7 @@
 #'                           cause secondary infections.
 #'                           See \code{\link{draw_sd_factor}}
 #' @return A list containing all of the above entries
+#' @export
 initialize_sim_params <- function(R0, infect.dur, vary.trace, p.trace,
                                   p.trace_app, p.trace_app_comp, p.symp, dt,
                                   incub_params, serial_int_params,
@@ -80,6 +81,7 @@ initialize_sim_params <- function(R0, infect.dur, vary.trace, p.trace,
 #'  \item \code{t} Current time (days)
 #'  \item \code{last_case_id} The last case_id generated (integer)
 #' }
+#' @export
 initialize_sim_status <- function(start_time, initial_n_cases){
   sim.status <- list(
     t=start_time,
@@ -134,6 +136,7 @@ initialize_sim_status <- function(start_time, initial_n_cases){
 #'                          parameter should be a list of case_ids for the primary cases.
 #'                          This should be \code{NULL} when there is no primary case. Defaults to \code{NULL}.
 #' @return A \code{state_df} dataframe object
+#' @export
 create_state_df <- function(n_cases, sim.params, sim.status,
                             initialize=FALSE, import=FALSE,
                             primary_state_df=NULL, primary_case_ids=NULL){
@@ -225,6 +228,7 @@ create_state_df <- function(n_cases, sim.params, sim.status,
 #'                          case's infection. Defaults to \code{NULL}, however, this
 #'                          parameter cannot be NULL if \code{initialize} is \code{FALSE}.
 #' @return A \code{rec_df} dataframe object
+#' @export
 create_record_df <- function(state_df, sim.status, initialize=FALSE, infection_source=NULL){
   # List of columns to record
   col_names <- c("case_id", "source", "is.traced", "is.trace_app_user", "is.traced_by_app",
