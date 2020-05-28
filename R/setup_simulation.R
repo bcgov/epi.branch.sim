@@ -170,14 +170,14 @@ create_state_df <- function(n_cases, sim.params, sim.status,
     state_df$is_traced_by_app <- rep(FALSE, n_cases)
   }
   state_df$is_symptomatic <- draw_symptomatic_status(n_cases,sim.params)
-  state_df$sd_factor <- draw_sd_factor(n_cases, sim.params, sim.status, initialize=initialize, import=import)
+  state_df$sd_factor <- draw_sd_factor(n_cases, sim.params, sim.status)
   state_df$days_infected <- rep(0, n_cases)
   state_df$incubation_length <- draw_incubation_period(n_cases,sim.params)
   state_df$isolation_delay <- draw_isolation_delay_period(state_df,sim.params,
                                                           primary_state_df=primary_state_df,
                                                           primary_case_ids=primary_case_ids)
   state_df$infection_length <- draw_infection_length(n_cases, sim.params)
-  sec_infect_out <- draw_sec_infects_df(state_df,sim.params, sim.status, initialize=initialize, import=import)
+  sec_infect_out <- draw_sec_infects_df(state_df,sim.params, sim.status, import=import)
   state_df$n_sec_infects<- sec_infect_out$n
   state_df$serial_intervals<- sec_infect_out$serial
   state_df$non_infect_serials <- sec_infect_out$non_infects
