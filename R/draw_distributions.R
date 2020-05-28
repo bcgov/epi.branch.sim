@@ -39,27 +39,54 @@ draw_symptomatic_status <- function(n, sim.params){
  return(runif(n) < sim.params$p.sym)
 }
 
-#' Draw onset-to-isolation periods for new cases from distribution
-#' defined in \code{sim.params$iso_delay_params}
+#' Draw delay to isolation periods for new cases
+#'
+#' The number of days between symptom onset and isolation, which may be negative if isolation
+#' occurs prior to symptom onset (as sometimes the case with traced cases).
+#'
+#' Within the list object \code{sim.params$iso_delay_params}, the user can define several delay
+#' periods based on tracing type, tracing status, and whether the case is practicing distancing.
+#' Traced cases have their delays measured from the index case's isolation time, so traced cases
+#' may isolate prior to their own symptom onset. Untraced cases have delays measured from the start
+#' of their own symptom onset. The untraced timeline is always considered for traced cases, so that
+#' if a traced case would have been isolated earlier just because of their symptom onset timeline,
+#' they would isolate at this earlier time.
+#'
+#' Although this function returns the number of days between symptom onset and isolation, the delay
+#' returned by this function may be negative if isolation occurs prior to symptom onset.
 #'
 #' @param state_df    \code{state_df} object for the simulation
 #' @param sim.params  \code{sim.params} object (a list) containing simulation parameters, where
 #'                    all of the information needed to describe the distribution is found within
 #'                    \code{sim.params$iso_delay_params}. Current distributions possible are:
 #'                    \itemize{
-#'                    \item \code{uniform_delay}: Delay is drawn from uniform distribution with
-#'                    attributes "min" and "max" given in \code{sim.params$iso_delay_params}.
-#'                    for traced cases. Untraced cases have a further delay of "delay" days.
+#'                    \item \code{uniform}: Delay is drawn from uniform distributions with
+#'                    attributes "min" and "max" given in \code{sim.params$iso_delay_params} for
+#'                    each type of case. Min/Max values to be provided are:
+#'                       \itemize{
+#'                       \item \code{iso_delay_traced_[min|max]}: Range for manually traced cases
+#'                       \item \code{iso_delay_untraced_[min|max]}: Range for untraced cases from the
+#'                       non-distancing population.
+#'                       \item \code{iso_delay_untraced_sd_[min|max]}: Rnage for untraced cases from
+#'                       the distancing population (any case with sd_factor less than 1).
+#'                       }
+#'                    Cases traced by the app (require both index and secondary cases to be app users
+#'                    *and* for the secondary case to be app-compliant) have a zero day delay.
 #'                    \item \code{Hellewell}: Delay is drawn from a Weibull distribution with
 #'                    attributes "shape" and "scale" given in \code{sim.params$iso_delay_params}.
 #'                    Traced cases have their delay set to zero days.
 #'                    }
-#' @return A vector of length n for case onset-to-isolation period (double)
+#' @param primary_state_df  The \code{state_df} object for the index/primary cases. Defaults to \code{NULL}.
+#'                          Only required for traced cases (i.e. not needed when generating initial or
+#'                          imported cases).
+#' @param primary_case_ids  A list of case_ids for the primary cases. Not required for initial or imported
+#'                          cases. Defaults to \code{NULL}.
+#' @return A vector of length n for case delay to isolation, measured from start of symptom onset (double)
 draw_isolation_delay_period <- function(state_df, sim.params,
                                         primary_state_df=NULL,
                                         primary_case_ids=NULL){
   iso_delay_params <- sim.params$iso_delay_params
-  if (iso_delay_params$dist=='BC'){
+  if (iso_delay_params$dist=='uniform'){
     n<-nrow(state_df)
     # Draw an isolation delay time assuming everyone is untraced at first,
     iso_delay <- runif(n,
