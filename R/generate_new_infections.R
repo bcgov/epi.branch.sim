@@ -47,13 +47,31 @@ generate_secondary_infections <- function(state_df, sim.params){
   }
 }
 
-#' Adds imported infections (new cases) to simulation
+#' Adds imported infections to simulation
 #'
-#' The daily risk of imported infections is defined from an external data file which
-#' contains the mean number of infected cases arriving per day. This risk level is
-#' loaded into the simulation as \code{sim.params$import_params}. This function "loads"
-#' the infections into the simulation at integer time steps, drawing a number of new
-#' infections as Poisson with mean equal to the daily risk.
+#' The number of imported infections may be a deterministic or stochastic value.
+#'
+#' The list object \code{sim.params$import_params} determines how imported cases are
+#' added to the simulation. The following import types are supported, which is chosen by
+#' \code{sim.params$import_params$type}:
+#' \describe{
+#'  \item{\code{type}="None" or "none"}{No cases are imported.}
+#'
+#'  \item{\code{type}="daily_risk"}{Each day, the number of imported cases is drawn from a Poisson
+#'  distribution with mean equal to the daily risk. The daily risk is given by a vector defined by
+#'  \code{sim.params$import_params$risk}, which should have length equal to the number of days in the
+#'  simulation.}
+#'
+#'  \item{\code{type}="constant"}{Each day, the number of imported cases is equal to a constant value, set
+#'  by \code{sim.params$import_params$rate}.}
+#'
+#'  \item{\code{type}="constant_two_phase"}{Same as the above, but with two possible constant values. For
+#'  times prior to \code{sim.params$import_params$delay}, the rate is \code{sim.params$import_params$rate1}.
+#'  After this time, the rate is \code{sim.params$import_params$rate2}.}
+#'
+#'  \item{\code{type}="poisson"}{Each day, the number of imported cases is drawn from a Poisson distribution
+#'  with mean set by \code{sim.params$import_params$rate}.}
+#' }
 #'
 #' @param sim.params  \code{sim.params} object (a list) containing simulation parameters
 #' @param sim.status  \code{sim.status} object (a list) containing simulation state vector
@@ -64,19 +82,27 @@ generate_secondary_infections <- function(state_df, sim.params){
 #'   will be recorded in \code{state_df} and \code{record_df}. For now, this will always be "imported".
 #' }
 generate_imported_infections <- function(sim.params, sim.status){
-  if (sim.params$import_params=="None"){
+  import_params <- sim.params$import_params
+  if (import_params$type=="None" | import_params$type=='none'){
     n_import<-0
   }
-  else{
-    # Only import cases at integer timesteps
-    if ((sim.status$t %% 1) == 0){
-      risk_index <- sim.status$t
-      risk<-sim.params$import_params[risk_index]
-      n_import <- rpois(1,risk)
+  else if (import_params$type=='daily_risk'){
+    risk_index <- sim.status$t
+    risk<-import_params$risk[risk_index]
+    n_import <- rpois(1,risk)
+  }
+  else if (import_params$type=='constant'){
+    n_import <- import_params$rate
+  }
+  else if (import_params$type=='constant_two_phase'){
+    if (sim.status$t < import_params$delay){
+      n_import <- import_params$rate1
+    } else{
+      n_import <- import_params$rate2
     }
-    else {
-      n_import<-0
-    }
+  }
+  else if (import_params$type=='poisson'){
+    n_import <- rpois(1,import_params$rate)
   }
   return(list(n_imported_infections=n_import, import_source='imported'))
 }
