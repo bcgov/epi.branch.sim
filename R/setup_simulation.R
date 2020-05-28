@@ -46,10 +46,8 @@ initialize_sim_params <- function(R0, infect.dur, vary.trace, p.trace,
     R0=R0,                      # used to parameterize probability of infection
     infect.dur=infect.dur,      # typical infection duration
     vary.trace=vary.trace,      # Boolean on whether using variable tracing model
-    p.trace=p.trace,            # probability of being traced (fixed, ignroed if vary.trace is TRUE)
-    # Rebeca's tracing model for BC (ignored if vary.trace is FALSE)
-    #p_group<-c(0.4882, 0.5058,0.0060), #probability of being in degree group 1,2 or 3
-    p_trace_bygroup=c(1,0.8,0), # probability of tracing group 1, 2 or 3
+    p.trace=p.trace,            # probability of being traced (fixed, ignored if vary.trace is TRUE)
+    p_trace_vary=c(1,0.8,0),    # probability of being traced for varying cluster sizes (ignored if vary.trace is FALSE)
     p.trace_app=p.trace_app,    # probability that a person is an app user
     p.trace_app_comp=p.trace_app_comp,    # probability that a person listens to app
     p.symp=p.symp,              # probability of symptomatic case
