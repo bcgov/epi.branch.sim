@@ -29,7 +29,11 @@ step_simulation <- function(sim.status, state_df, rec_df, sim.params){
   # Also update rec_df for the origin cases and sim.status for case_id info
   if (n_sec_infections > 0){
     # Create new state_df for new cases
-    sec_cases_state_df <- create_state_df(n_sec_infections, sim.params, sim.status)
+    sec_cases_state_df <- create_state_df(n_sec_infections,
+                                          sim.params,
+                                          sim.status,
+                                          primary_state_df = state_df,
+                                          primary_case_ids = sec_infs_source)
     # Update last_case_id
     sim.status$last_case_id <- max(sec_cases_state_df$case_id)
     # Create new rec_df for new cases
@@ -38,14 +42,22 @@ step_simulation <- function(sim.status, state_df, rec_df, sim.params){
   }
 
   # Determine whether there will be any imported cases
-  gen_imp_infect_out <- generate_imported_infections(sim.params, sim.status)
-  n_imp_infections <- gen_imp_infect_out$n_imported_infections
-  imp_source <- gen_imp_infect_out$import_source
+  # Only import cases at whole number timesteps
+  if ( (sim.status$t%%1) < 1e-3 || 1-(sim.status$t%%1) < 1e-3 ){
+    gen_imp_infect_out <- generate_imported_infections(sim.params, sim.status)
+    n_imp_infections <- gen_imp_infect_out$n_imported_infections
+    imp_source <- gen_imp_infect_out$import_source
+  } else{
+    n_imp_infections<-0
+  }
   # If there are imported cases, create temporary state and rec dataframes for the new cases
   # Also update sim.status for case_id info
   if (n_imp_infections > 0){
     # Create new state_df for new imported cases
-    imp_cases_state_df <- create_state_df(n_imp_infections, sim.params, sim.status, import=TRUE)
+    imp_cases_state_df <- create_state_df(n_imp_infections,
+                                          sim.params,
+                                          sim.status,
+                                          import=TRUE)
     # Update last_case_id
     sim.status$last_case_id <- max(imp_cases_state_df$case_id)
     # Create new rec_df for new imported cases
@@ -67,9 +79,9 @@ step_simulation <- function(sim.status, state_df, rec_df, sim.params){
   # Identify all remaining cases that are eligible for advancement to next stage
   # Doing it now prevents checking advanced cases for another advancement
   cases_adv_inc <- (state_df$status=="incubation") &
-                   (state_df$days_infected > state_df$incubation_length)
+    (state_df$days_infected > state_df$incubation_length)
   cases_adv_symp <- (state_df$status=="symptomatic") &
-                    (state_df$days_infected > (state_df$incubation_length + state_df$isolation_delay))
+    (state_df$days_infected > (state_df$incubation_length + state_df$isolation_delay))
 
   # Advance current infections from incubation to next stage
   # Goes to symptomatic or asymptomatic based on $is_symptomatic
