@@ -4,7 +4,7 @@
 \alias{draw_sec_infects_df}
 \title{Stage secondary infections when new cases are generated}
 \usage{
-draw_sec_infects_df(state_df, sim.params, sim.status)
+draw_sec_infects_df(state_df, sim.params, sim.status, import = FALSE)
 }
 \arguments{
 \item{state_df}{\code{state_df} object for the newly generated cases}
