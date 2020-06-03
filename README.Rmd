@@ -12,29 +12,35 @@ knitr::opts_chunk$set(
 )
 ```
 
-<!-- Add a project state badge
-See https://github.com/BCDevExchange/Our-Project-Docs/blob/master/discussion/projectstates.md
-If you have bcgovr installed and you use RStudio, click the 'Insert BCDevex Badge' Addin. -->
-
 # epi.branch.sim
 
-Description of package
+Simulates an epidemic outbreak with a stochastic branching process from a number of initial seed cases. 
 
 ### Features
 
+Every simulated case has disease and intervention parameters stochastically drawn from user-provided distributions. These parameters determine which secondary cases occur, which in turn create the next generation of cases. This simulation implements modelling of interventions such as:
+* manual/conventional contact tracing, 
+* app-based contact tracing usage and compliance, 
+* reduction of contacts through physical distancing,
+* self-isolation of cases after certain conditions are met, and
+* quarantine/isolation of new arrivals.
+
+This simulation also includes the option of adding new cases via importation, which may have different contact tracing and self-isolation conditions. The simulation itself outputs a dataframe that summarizes every case generated during the course of the simulation. This can be used to generate metrics or other statistics across a large number of runs. Some example driver functions to do this are provided in the package and as vignettes.
+
+This package is inspired by [Hellewell et al. "Feasibility of controlling COVID-19 outbreaks by isolation of cases and contacts." *The Lancet Global Health* 2020; 8: E488–E496. DOI: 10.1016/S2214-109X(20)30074-7](https://doi.org/10.1016/S2214-109X(20)30074-7). 
+
 ### Installation
+
+Instructions coming soon.
 
 ### Usage
 
-#### Example
+Examples and vignettes coming soon.
 
-This is a basic example which shows you how to solve a common problem:
-
-```{r example}
-## basic example code
-```
 
 ### Project Status
+
+This package is maturing. This is a public release of a tool well used within our team in order to share the tool more widely. At release, the package is functional and all of the intended features are working. More features may be added based on usage and demand. Documentation and examples are also forthcoming.
 
 ### Getting Help or Reporting an Issue
 
