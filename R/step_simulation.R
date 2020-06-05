@@ -95,6 +95,8 @@ step_simulation <- function(sim.status, state_df, rec_df, sim.params){
     (state_df$days_infected > state_df$incubation_length)
   cases_adv_symp <- (state_df$status=="symptomatic") &
     (state_df$days_infected > (state_df$incubation_length + state_df$isolation_delay))
+  cases_adv_asymp <- (state_df$status=="asymptomatic") &
+    (state_df$days_infected > (state_df$incubation_length + state_df$isolation_delay))
 
   # Advance current infections from incubation to next stage
   # Goes to symptomatic or asymptomatic based on $is_symptomatic
@@ -105,8 +107,8 @@ step_simulation <- function(sim.status, state_df, rec_df, sim.params){
     past_iso_delay <- state_df$days_infected > (state_df$incubation_length + state_df$isolation_delay)
     # Update state_df
     to_symp <- cases_adv_inc & state_df$is_symptomatic & !past_iso_delay
-    to_iso  <- cases_adv_inc & state_df$is_symptomatic & past_iso_delay
-    to_asymp <- cases_adv_inc & !state_df$is_symptomatic
+    to_iso  <- cases_adv_inc & past_iso_delay
+    to_asymp <- cases_adv_inc & !state_df$is_symptomatic & !past_iso_delay
     state_df$status[to_symp] <- "symptomatic"
     state_df$status[to_iso] <- "isolated"
     state_df$status[to_asymp] <- "asymptomatic"
@@ -132,6 +134,17 @@ step_simulation <- function(sim.status, state_df, rec_df, sim.params){
     state_df$status[cases_adv_symp] <- "isolated"
     # Update rec_df
     ids_to_iso <- state_df$case_id[cases_adv_symp]
+    rec_df$t.iso[rec_df$case_id %in% ids_to_iso] <- sim.status$t
+    rec_df$s.status[rec_df$case_id %in% ids_to_iso] <- "isolated"
+  }
+
+  # Advance current infections from asymptomatic to isolated after delay
+  n_cases_adv_asymp <- sum(cases_adv_asymp)
+  if (n_cases_adv_asymp > 0){
+    # Update state_df
+    state_df$status[cases_adv_asymp] <- "isolated"
+    # Update rec_df
+    ids_to_iso <- state_df$case_id[cases_adv_asymp]
     rec_df$t.iso[rec_df$case_id %in% ids_to_iso] <- sim.status$t
     rec_df$s.status[rec_df$case_id %in% ids_to_iso] <- "isolated"
   }
