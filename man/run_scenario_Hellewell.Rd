@@ -49,8 +49,7 @@ percentage, nsims_extinct, nsims_epidemic, nsims_ongoing.
 }
 \description{
 For a given tracing fraction and R0 (a "scenario"), count the fraction of simulations
-that are controlled. Designed to reproduce results from the source paper for this model
-(\href{https://doi.org/10.1016/S2214-109X(20)30074-7}{DOI: 10.1016/S2214-109X(20)30074-7)}
+that are controlled. Designed to reproduce results from the source paper for this model: \href{https://doi.org/10.1016/S2214-109X(20)30074-7}{Hellewell et al. "Feasibility of controlling COVID-19 outbreaks by isolation of cases and contacts." \emph{The Lancet Global Health} 2020; 8: E488-E496. DOI: 10.1016/S2214-109X(20)30074-7}
 }
 \details{
 The intention of this driver function is to reproduce Figure 3A from Hellewell et al. which
