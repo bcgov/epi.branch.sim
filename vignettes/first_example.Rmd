@@ -16,6 +16,10 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{css, echo=FALSE}
+pre, code {white-space:pre !important; overflow-x:auto}
+```
+
 This vignette demonstrates how to run a single simple example simulation with `epi.branch.sim`. It assumes you have read [the introductory vignette](introduction.html) which gave a high level overview of the package, the simulation algorithm and the description of the main simulation objects.
 
 In this vignette, we will use the package's exposed functions to set up and run a simulation. We will examine the output and show how we can compute metrics from the output.
