@@ -20,8 +20,7 @@
 #' Run scenarios as in Hellewell et al. (2020) paper
 #'
 #' For a given tracing fraction and R0 (a "scenario"), count the fraction of simulations
-#' that are controlled. Designed to reproduce results from the source paper for this model
-#' (\href{https://doi.org/10.1016/S2214-109X(20)30074-7}{DOI: 10.1016/S2214-109X(20)30074-7)}
+#' that are controlled. Designed to reproduce results from the source paper for this model: [Hellewell et al. "Feasibility of controlling COVID-19 outbreaks by isolation of cases and contacts." *The Lancet Global Health* 2020; 8: E488-E496. DOI: 10.1016/S2214-109X(20)30074-7](https://doi.org/10.1016/S2214-109X(20)30074-7)
 #'
 #' The intention of this driver function is to reproduce Figure 3A from Hellewell et al. which
 #' shows the fraction of outbreaks controlled as a function of R0 and tracing fraction. These

@@ -92,7 +92,10 @@ step_simulation <- function(sim.status, state_df, rec_df, sim.params){
   # Identify all remaining cases that are eligible for advancement to next stage
   # Doing it now prevents checking advanced cases for another advancement
   cases_adv_inc <- (state_df$status=="incubation") &
-    (state_df$days_infected > state_df$incubation_length)
+    (
+      (state_df$days_infected > state_df$incubation_length) |
+      (state_df$days_infected > state_df$incubation_length + state_df$isolation_delay)
+    )
   cases_adv_symp <- (state_df$status=="symptomatic") &
     (state_df$days_infected > (state_df$incubation_length + state_df$isolation_delay))
   cases_adv_asymp <- (state_df$status=="asymptomatic") &
