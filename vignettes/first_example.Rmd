@@ -1,0 +1,250 @@
+---
+title: "epi.branch.sim: First example"
+author: "Henry Ngo"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{epi.branch.sim first example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This vignette demonstrates how to run a single simple example simulation with `epi.branch.sim`. It assumes you have read [the introductory vignette](introduction.html) which gave a high level overview of the package, the simulation algorithm and the description of the main simulation objects.
+
+In this vignette, we will use the package's exposed functions to set up and run a simulation. We will examine the output and show how we can compute metrics from the output.
+
+In other vignettes, we will look at how to use "driver" functions to set up a series of simulations, run them, and extract metrics to be used in analysis. This package also contains some example driver functions but more advanced analysis will require a user-customized driver function.
+
+## Set up simulation
+First, load the library amd set a random seed for reproducibility.
+```{r setup}
+library(epi.branch.sim)
+set.seed(3483)
+```
+
+Now we define parameters for the disease spread, interventions and other simulation controls. Note that these are just example choices, not necessarily representative of the full range of options.
+
+### Define disease parameters
+```{r setup disease params}
+R0 <- 2.5
+infect.dur <- 14  # in days
+p.symp  <- 0.8 # percentage of cases that will be symptomatic
+incub_params <- list(dist='lognormal',meanlog=1.57, sdlog=0.65) # in days
+serial_int_params <- list(dist='gamma', shape=2.29, rate=0.36) # in days
+sec_infect_params <- list(type='Hellewell', disp=0.58) # negative binomial dispersion parameter
+```
+The incubation period and serial interval distributions are from [Bi et al. (2020)](https://www.medrxiv.org/content/10.1101/2020.03.03.20028423v3). These distribution parameters are passed as named lists that are interpreted by the package. For now, only pre-programmed distributions are possible. Run `?draw_incubation_period` and `?draw_serial_interval` to see what is currently available. The number of potential secondary infections are modelled in the same way as [Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7), i.e. drawn from a negative binomial distribution with mean equal to R0 and a dispersion parameter as provided in the `sec_infect_params` named list. Currently, this is the only way to model secondary infections, so no other value for `sec_infect_params$type` are accepted.
+
+### Define intervention parameters
+Tracing parameters:
+```{r setup tracing params}
+# Contact tracing parameters
+do.variable.trace <- FALSE # use a constant tracing value (see next line)
+p.trace <- 0.75 # all cases have a 75% chance of being traced
+p.trace_app <- 0.75 # percentage of population using a contact tracing app
+p.trace_app_comp <- 0.75 # percentage of population complying with contact tracing app isolation instructions
+```
+
+Timeline for isolation of cases:
+```{r setup isolation}
+# Set delays to isolation 
+iso_delay_params <- list(
+  dist='uniform', # the following are min/max ranges of a uniform distribution
+  traced_min = 1, # traced secondary cases isolated 1-3 days after index case isolated
+  traced_max = 3,
+  untraced_min = 4, # untraced secondary cases isolated 4-5 days after *symptom onset*
+  untraced_max = 5,
+  untraced_sd_min = 2, # untraced secondary cases which are distancing isolated earlier
+  untraced_sd_max = 3
+)
+```
+Run `?draw_isolation_delay_period` for more information on the above choices.
+
+Social/physical distancing parameters:
+```{r setup distancing}
+# Social / physical distancing parameters
+sd_params <- list(
+  sd_pop_frac = 0.8, # 80% of population are distancing
+  sd_contact_rate1 = 1.0, # initial fraction of contacts for distancing group (0-1)
+  sd_contact_rate2 = 0.3, # final fraction of contacts for distancing group 
+  sd_change_t = 7 # simulation day number where the contact rate changes
+)
+```
+Run `?draw_sd_factor` for more information on the above choices.
+
+### Define simulation control parameters (including imports)
+
+Finally, a few important parameters that control how the simulation starts and runs. The ability to add new cases that aren't secondary cases (i.e. imported cases) are considered here too.
+```{r setup sim}
+start_time <- 0 # start at time 0 
+dt <- 1 # timestep, in days
+tmax <- 30 # total number of days in simulation
+n_initial <- 3 # number of cases on day 0
+import_params <- list(
+  type = 'constant',
+  rate = 1,  # one new import every day
+  iso_lengths = 0, # number of days that imported cases might self-isolate upon arrival
+  iso_p.group = 1  # probability that an imported case will do the above self-isolation
+)
+```
+Run `?generate_imported_infections` to see the other stochastic and deterministic options for number of daily imported cases.
+
+### Create initial simulation objects
+This package has four functions to create and initialize the four simulation objects. We'll use the parameters we just defined to create these four objects
+
+```{r create sim objects}
+sim.params <- initialize_sim_params(
+  R0, infect.dur, do.variable.trace, p.trace, 
+  p.trace_app, p.trace_app_comp, p.symp, dt,
+  incub_params, serial_int_params,
+  iso_delay_params, sec_infect_params,
+  import_params, sd_params)
+sim.status <- initialize_sim_status(start_time,n_initial) 
+state_df   <- create_state_df(n_initial,sim.params, sim.status, initialize=TRUE)
+record_df  <- create_record_df(state_df, sim.status, initialize=TRUE)
+```
+Note that `sim.params` and `sim.status` need to be created first, because they are used as input to create the `state_df` and `record_df` objects.
+
+Let's take a look at the first few rows of the `state_df` object to get a sense of what we have.
+```{r peek state_df}
+head(state_df)
+```
+Note that all initial cases are considered to be untraced. At the start of the simulation, the `sd_factor` is 1 because we've set up distancing to be delayed until day 7. Note that all times in `state_df` are measured in a relative sense: most times are measured from the start of infection, except for `isolation_delay`, which is measured from the onset of symptoms (`incubation_length`). The `serial_intervals` column lists the times where the case would cause a secondary infection. Here, we see that case 1 will cause an infection at time 0.73, i.e. the next time step. The column `non_infect_serials` list potential secondary infections that were blocked due to the index case's isolation. See `create_state_df` for more information on these columns.
+
+Now we can take a peek at `record_df`.
+```{r peek record_df}
+head(record_df)
+```
+Many of the same columns exist but there are a few more for better tracking. While information is removed from `state_df` as they are no longer needed (for instance, the serial intervals list shortens as the infections are loaded into the simulation and rows are removed entirely when the case no longer has further pending infections), `record_df` retains all the information until the end of the simulation. Here, columns for milestones beginning with `d.` (e.g. `d.incub`) are durations that are measured as a relative time. On the other hand, columns such as `t.symp` are absolute simulation times, which have value `NA` until these milestones occur. Note that not all cases will reach all milestones. See `?create_record_df` for more information on these columns.
+
+
+## Run simulation forward by one step
+The function `step_simulation` is provided to advance the simulation by one timestep `dt`. It takes the four simulation objects as input and returns the three objects that vary over time. These outputs can be used as input for the next step forward. Let's advance the simulation by one timestep (one day).
+
+```{r run first step}
+out <- step_simulation(sim.status, state_df, record_df, sim.params)
+sim.status <- out$status
+state_df <- out$state
+record_df <- out$record
+```
+
+We can check that `sim.status` is indeed updated.
+```{r check sim.status}
+print(sim.status)
+```
+This confirms that we are now at time 1 and there are 5 total cases as expected (one secondary infection from case ID 1 and one imported case).
+
+Let's look at the `state_df` state vector now.
+```{r check state_df}
+head(state_df)
+```
+We see that the first three cases have their `days_infected` counter increase by 1. Cases 4 and 5 are new and are at zero days infected. We see that `n_sec_infects` for Case 1 has decreased from 9 to 8 and the first `serial_intervals` entry has been removed since that infection has already happened (Case 4). 
+
+It's also worth noting how isolation removes potential infections. Looking at Case 4, we see that the isolation time is 7.01 days after initial infection (`incubation_length` of 2.26 days plus `isolation_delay` of 4.75 days). We also see that there will be 7 secondary infections from this case (`n_sec_infects=7`). The serial intervals for these 7 infections are listed in `serial_intervals` and the last one is 6.28 days. We can also see that there were 2 potential secondary infections that were blocked from happening: `non_infect_serials` shows blocked infections at 7.21 days and at 10.24 days past infection. Thus, the negative binomial draw for this case was 9 potential infections and our intervention policies blocked 2 of them.
+
+** Optional side note:** Case 4 is also the first manually traced case. The index case for Case 4 is Case 1, who would be isolated at 8 days (`incubation_length` of 3.3 days + `isolation_delay` of 4.7 days) past infection, or on simulation day 8 (since Case 1 was infected on day 0). Traced cases such as Case 4 are isolated at 1-3 days after their index case is isolated, so we would expect Case 4 to be isolated between day 9 and day 12. However, as discussed above, Case 4 will be isolated at 7.01 days past infection, so Case 4 is isolated around simulation day 8. This is because we also isolate untraced cases at 4-5 days past onset of symptoms (i.e. after `incubation_length`). If a case would be isolated faster this way than through tracing, then the shorter delay is used. So, because Case 1 had such a long isolation time, Case 4, while determined to be contact traced, is still isolated as an untraced case. 
+
+Let's also look at the new `record_df` at this time.
+```{r check record_df}
+head(record_df)
+```
+We see much of the same information as before. The `source` column is helpful to identify what caused the infection. We see that Case 4 is indeed caused by Case 1 and Case 5 is an imported case. We also see that `n.sec_infects` in the `record_df` for Case 1 remains at 9 because `record_df` tracks the entire history or facts about each case while `state_df` just tracks what is necessary at a given time to advance the simulation. 
+
+It's important to note that `t.inf` (and other `t.*` columns) are given at the discrete simulation timesteps only (i.e. multiples of `dt`, which is 1 in this example). Remember that the first serial interval of Case 1 was 0.73 days, which led to Case 4. For the purposes of propagating infections and calculating Case 4's isolation time, Case 4 was infected at time `t=0.73 days`. But in these columns, `t.inf` for Case 4 is on day 1. Thus, these columns indicate the timestep where the case reach these milestones, not the actual time. These columns are best used for debugging rather than analysis.
+
+## Run the simulation to final timestep
+Now that we have run the simulation forward one timestep, we can just put everything in a loop and run it until we reach time of `tmax`.
+
+```{r finish sim}
+for (t in (1+sim.status$t):tmax){ # t takes values 2,3,4,5,...30 (tmax)
+  out <- step_simulation(sim.status, state_df, record_df, sim.params)
+  sim.status <- out$status # update sim.status
+  state_df <- out$state    # update state_df
+  record_df <- out$record  # update record_df
+}
+```
+
+Let's confirm that the simulation is where we expect and count the number of cases
+```{r check end of sim}
+sim.status$t
+nrow(state_df)
+nrow(record_df)
+```
+The ending simulation time is 30 days, as expected. There are 54 active cases at this time and 301 cases ever recorded by the simulation. Let's look at the first few lines of `state_df`.
+
+```{r check head state_df}
+head(state_df, n=5)
+```
+We see these are the oldest active cases. The oldest entry here is Case 180, still in incubation after 11 days since this one has an incubation length of 31.5 days! 
+
+Now let's look at the last few lines of `state_df`.
+```{r check tail state_df}
+tail(state_df, n=5)
+```
+We see the last five cases, up to #301, the most recent case. Note that Case #300 has a negative value for `isolation_delay`, indicating that this case will be isolated before the end of the incubation period. This happens because we see that Case #300 is traced by the app which causes traced cases to be isolated as soon as the index case is isolated, leading to quick isolations. We also see that three of the last five cases have a `sd_factor` of 0.3, indicating that they are physically distancing and have only 0.3 times as many contacts as normal. 
+
+We can also examine the first five lines of `record_df`.
+```{r check head record_df}
+head(record_df, n=5)
+```
+We see the first five cases again, however, now that the simulation is ended, these cases are resolved (i.e. either isolated or inactive in the `s.status` column). The timesteps where certain milestones are reached (e.g. `t.*` columns) are completed now, with `NA` remaining for milestones that didn't happen. For instance, Cases 2, 3, and 5 were asymptomatic, so no `t.symp` is recorded. The `cases_inf` column is meant to record the case IDs of the secondary infections but this bookkeeping item is not yet implemented. This information could be reconstructed from the `source` column.
+
+## Retrieve metrics from simulation
+While it could be interesting to examine the detailed case history of each simulation, typically, we want to do a statistical analysis to determine the distribution of various important quantities across many different simulations/realisations. We'll demonstrate some metrics that can be computed from `state_df` and `record_df`. 
+
+### Counting number of cases of different statuses/types
+For example, you can simply count the number of cases in various categories. Note these statements are in parentheses so that the result will be printed for the purposes of this vignette.
+```{r echo=TRUE, count_cases}
+(n.active <- nrow(state_df)) # all statuses except isolated or inactive
+(n.total <- nrow(record_df)) # all cases, active or not
+(n.incubation <- sum(record_df$s.status=='incubation')) # or any other status
+(n.traced_by_app <- sum(record_df$is.traced_by_app))
+(n.imported <- sum(record_df$source=='imported'))
+```
+Here, we only have one simulation, but typically, we might have set up several hundred simulations. We might loop over these simulations and in each iteration of the loop, these values would be stored in an output dataframe or vector that collects output from all the simulations. Also, here we are waiting until the final timestep before computing any metrics, but these values can also be captured at each timestep to create a time series per simulation. Again, these metrics can be computed within a loop over each timestep.
+
+### New secondary and imported cases
+In the above code chunks, we only use the first three named items in the output object `out` from `step_simulation()`. Let's see what else is available.
+```{r examine_out}
+names(out)
+print(out$new_sec_cases)
+print(out$new_imp_cases)
+```
+We see that there are two more outputs given at each timestep as a convienence. These are the number of new secondary cases generated at each step and the number of new imported cases added at each step. 
+
+### Effective R or Rt
+One other useful metric is the effective reproductive number R or the instanteous reproductive number Rt. One way to compute Reff is to consider the average number of secondary infections for each case
+```{r calc_Reff}
+Reff <- mean(record_df$n.sec_infects)
+print(Reff)
+```
+We see that over the course of the simulation, the tracing and distancing interventions has reduced the reproductive number from R0 of 2.5 to an R of 1.09.
+
+Calculating Reff in this way is a look back to the beginning of the simulation, but it may not be a good reflection of the current transmission rates. Instead, we might want to just look at infections that began in the past 7 days. We can subset `record_df` to only include the most recent cases and do the same calculation.
+```{r calc_Rt7}
+rec_df_last7 <- subset(record_df, t.inf > tmax-7) # record_df for infections from last 7 days
+Rt <- mean(rec_df_last7$n.sec_infects)
+print(Rt)
+```
+We see that for infections occuring the last 7 days, the reproductive number is much lower, only 0.65, since we are not counting the earlier cases prior to distancing. 
+
+## Simulation output
+Typically, we will be running many simulations for one or more scenarios (set of parameters) through a `driver` function that sets up each scenario, loops through all the timesteps, computes metrics at each timestep and/or at the end of the simulation, and finally outputs something to be used in further analysis scripts. While the `driver` function or user-defined script can define the output in any way desired, typically a dataframe or tibble is a good idea. The columns could include some or all of the simulation parameters and the output metrics. Each row could be the value of each column at each timestep for each simulation (if time-series for each simualtion is desired) or simply one summary value for each metric per simulation. Output arranged in this way is helpful because each simulation or scenario set of simulations can be run independently in parallel processes and saved to independent `.rds` files that are later combined with `rbindlist` or similar function. 
+
+### Outbreak determination
+While many of the above metrics can also be determined at each timestep, some metrics such as whether a particular simulation leads to an outbreak can only be determined at the final timestep. Because this is a stochastic branching process, when there are no imported cases, it is possible for the epidemic to fizzle out. In [Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7), they run the branching processes for 3 months and consider an outbreak controlled if there are no additional infections after this time. This determination is best done within the `driver` function at the final timestep and an example for the Hellewell implementation can be found in this package at `epi.branch.sim::run_scenario_Hellewell()`. Another method is to consider the Rt value at the last timestep and count outbreaks if Rt is greater than 1. This can be computed within the driver function as before, or in an analysis script 
+
+## Next steps
+In the future, we will present vignettes showing examples of this package applied to outbreak simulation on a large scale, such as a vignette reproducing the main results from [Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7). We will also show vignettes that demonstrate one method to fit to reported case counts and forecast future case counts. They will be linked here when ready.
+
+## References
+[Bi et al. (2020)](https://www.medrxiv.org/content/10.1101/2020.03.03.20028423v3), "Epidemiology and Transmission of COVID-19 in Shenzhen China: Analysis of 391 cases and 1,286 of their close contacts", medRxiv 2020.03.03.20028423.
+
+[Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7), "Feasibility of controlling COVID-19 outbreaks by isolation of cases and contacts", *The Lancet Global Health*, Vol. 8, E488-E496.
