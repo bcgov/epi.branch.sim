@@ -10,7 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
-#' Creates \code{sim.params} object for global simulation parameters
+#' Creates \code{sim_params} object for global simulation parameters
 #'
 #' This object is a list containing global simulation parameters such as the disease
 #' parameters, either directly defined or through a distribution with user-provided
@@ -20,16 +20,16 @@
 #' @param R0            Reproductive number of disease. Used in \code{\link{draw_sec_infects_df}} to
 #'                      determine the number of potential secondary infections
 #'                      from a primary case.
-#' @param infect.dur    Duration of infection (in days). This constant value determines when
+#' @param infect_dur    Duration of infection (in days). This constant value determines when
 #'                      a case is no longer active. It's also the length of the infectious
 #'                      period, unless the case is isolated. See \code{\link{draw_infection_length}}
-#' @param vary.trace    Boolean to determine whether contact tracing is a constant or variable
+#' @param vary_trace    Boolean to determine whether contact tracing is a constant or variable
 #'                      based on the number of new cases in a cluster.
 #'                      See \code{\link{draw_traced_status}}
-#' @param p.trace       Probability that a case will be manually traced.
-#' @param p.trace_app   Probability that a case will be a contact tracing app user.
-#' @param p.trace_app_comp Probability that a case would comply with contact tracing app recommendations.
-#' @param p.symp        Probability that a case is symptomatic.
+#' @param p_trace       Probability that a case will be manually traced.
+#' @param p_trace_app   Probability that a case will be a contact tracing app user.
+#' @param p_trace_app_comp Probability that a case would comply with contact tracing app recommendations.
+#' @param p_symp        Probability that a case is symptomatic.
 #'                      Used in \code{\link{draw_symptomatic_status}}.
 #' @param dt            Size of the simulation time step (in days).
 #' @param incub_params  Parameters for distribution of incubation length.
@@ -48,20 +48,20 @@
 #'                           See \code{\link{draw_sd_factor}}
 #' @return A list containing all of the above entries
 #' @export
-initialize_sim_params <- function(R0, infect.dur, vary.trace, p.trace,
-                                  p.trace_app, p.trace_app_comp, p.symp, dt,
+initialize_sim_params <- function(R0, infect_dur, vary_trace, p_trace,
+                                  p_trace_app, p_trace_app_comp, p_symp, dt,
                                   incub_params, serial_int_params,
                                   iso_delay_params, sec_infect_params,
                                   import_params, social_dist_params){
-  sim.params <- list(
+  sim_params <- list(
     R0=R0,                      # used to parameterize probability of infection
-    infect.dur=infect.dur,      # typical infection duration
-    vary.trace=vary.trace,      # Boolean on whether using variable tracing model
-    p.trace=p.trace,            # probability of being traced (fixed, ignored if vary.trace is TRUE)
-    p.trace_vary=c(1,0.8,0),    # probability of being traced for varying cluster sizes (ignored if vary.trace is FALSE)
-    p.trace_app=p.trace_app,    # probability that a person is an app user
-    p.trace_app_comp=p.trace_app_comp,    # probability that a person listens to app
-    p.symp=p.symp,              # probability of symptomatic case
+    infect_dur=infect_dur,      # typical infection duration
+    vary_trace=vary_trace,      # Boolean on whether using variable tracing model
+    p_trace=p_trace,            # probability of being traced (fixed, ignored if vary_trace is TRUE)
+    p_trace_vary=c(1,0.8,0),    # probability of being traced for varying cluster sizes (ignored if vary_trace is FALSE)
+    p_trace_app=p_trace_app,    # probability that a person is an app user
+    p_trace_app_comp=p_trace_app_comp,    # probability that a person listens to app
+    p_symp=p_symp,              # probability of symptomatic case
     dt=dt,                      # size of time step
     incub_params=incub_params,           # parameters for distribution of incubation length
     serial_int_params=serial_int_params, # parameters for distribution of serial interval
@@ -72,16 +72,16 @@ initialize_sim_params <- function(R0, infect.dur, vary.trace, p.trace,
     # Social distancing parameters
     social_dist_params=social_dist_params
   )
-  return(sim.params)
+  return(sim_params)
 }
 
-#' Creates \code{sim.status} object, the simulation state vector
+#' Creates \code{sim_status} object, the simulation state vector
 #'
 #' This object is a list containing the simulation state vector. This contains values that
-#' change with every time step. Note that \code{sim.params} is another important object
+#' change with every time step. Note that \code{sim_params} is another important object
 #' containing quantities that remain constant throughout the simulation. Currently, the
-#' only two items in \code{sim.status} are the time and the case_id of the last case
-#' infected (used to generate the next case_id). This function creates the \code{sim.status}
+#' only two items in \code{sim_status} are the time and the case_id of the last case
+#' infected (used to generate the next case_id). This function creates the \code{sim_status}
 #' object at the beginning of the simulation and only needs to be called once.
 #'
 #' @param start_time      The start time (in days) for the simulation
@@ -93,11 +93,11 @@ initialize_sim_params <- function(R0, infect.dur, vary.trace, p.trace,
 #' }
 #' @export
 initialize_sim_status <- function(start_time, initial_n_cases){
-  sim.status <- list(
+  sim_status <- list(
     t=start_time,
     last_case_id=initial_n_cases
   )
-  return(sim.status)
+  return(sim_status)
 }
 
 #' Creates a \code{state_df} object
@@ -132,8 +132,8 @@ initialize_sim_status <- function(start_time, initial_n_cases){
 #' and tracks all times as the absolute amount of time passed since the simulation start.
 #'
 #' @param n_cases      The number of cases to initialize in this dataframe
-#' @param sim.params   The \code{sim.params} object containing disease and simulation parameters
-#' @param sim.status   The \code{sim.status} state vector
+#' @param sim_params   The \code{sim_params} object containing disease and simulation parameters
+#' @param sim_status   The \code{sim_status} state vector
 #' @param initialize   A boolean indicating whether these cases are the first cases of the
 #'                     simulation. Defaults to \code{FALSE}. Initial cases are never traced.
 #' @param import       A boolean indicating whether these new cases are imported cases instead
@@ -147,7 +147,7 @@ initialize_sim_status <- function(start_time, initial_n_cases){
 #'                          This should be \code{NULL} when there is no primary case. Defaults to \code{NULL}.
 #' @return A \code{state_df} dataframe object
 #' @export
-create_state_df <- function(n_cases, sim.params, sim.status,
+create_state_df <- function(n_cases, sim_params, sim_status,
                             initialize=FALSE, import=FALSE,
                             primary_state_df=NULL, primary_case_ids=NULL){
   # List of columns in state df
@@ -162,35 +162,35 @@ create_state_df <- function(n_cases, sim.params, sim.status,
   if (initialize){
     state_df$case_id <- 1:n_cases # special case for starting out
   } else{
-    state_df$case_id <- sim.status$last_case_id + 1:n_cases
+    state_df$case_id <- sim_status$last_case_id + 1:n_cases
   }
   state_df$status <- rep("incubation", n_cases)
   if (initialize || import){
     state_df$is_traced <- rep(FALSE, n_cases)
   } else{
-    state_df$is_traced <- draw_traced_status(n_cases,sim.params)
+    state_df$is_traced <- draw_traced_status(n_cases,sim_params)
   }
   if (import){ # imported cases are not app users
     state_df$is_trace_app_user <- rep(FALSE, n_cases)
     state_df$is_trace_app_comply <- rep(FALSE, n_cases)
   } else{
-    state_df$is_trace_app_user <- draw_trace_app_user_status(n_cases, sim.params)
-    state_df$is_trace_app_comply <- draw_trace_app_compliance(state_df, sim.params)
+    state_df$is_trace_app_user <- draw_trace_app_user_status(n_cases, sim_params)
+    state_df$is_trace_app_comply <- draw_trace_app_compliance(state_df, sim_params)
   }
   if (!is.null(primary_state_df)){
     state_df$is_traced_by_app <- draw_traced_by_app(state_df, primary_state_df, primary_case_ids)
   } else {
     state_df$is_traced_by_app <- rep(FALSE, n_cases)
   }
-  state_df$is_symptomatic <- draw_symptomatic_status(n_cases,sim.params)
-  state_df$sd_factor <- draw_sd_factor(n_cases, sim.params, sim.status)
+  state_df$is_symptomatic <- draw_symptomatic_status(n_cases,sim_params)
+  state_df$sd_factor <- draw_sd_factor(n_cases, sim_params, sim_status)
   state_df$days_infected <- rep(0, n_cases)
-  state_df$incubation_length <- draw_incubation_period(n_cases,sim.params)
-  state_df$isolation_delay <- draw_isolation_delay_period(state_df,sim.params,
+  state_df$incubation_length <- draw_incubation_period(n_cases,sim_params)
+  state_df$isolation_delay <- draw_isolation_delay_period(state_df,sim_params,
                                                           primary_state_df=primary_state_df,
                                                           primary_case_ids=primary_case_ids)
-  state_df$infection_length <- draw_infection_length(n_cases, sim.params)
-  sec_infect_out <- draw_sec_infects_df(state_df,sim.params, sim.status, import=import)
+  state_df$infection_length <- draw_infection_length(n_cases, sim_params)
+  sec_infect_out <- draw_sec_infects_df(state_df,sim_params, sim_status, import=import)
   state_df$n_sec_infects<- sec_infect_out$n
   state_df$serial_intervals<- sec_infect_out$serial
   state_df$non_infect_serials <- sec_infect_out$non_infects
@@ -211,27 +211,27 @@ create_state_df <- function(n_cases, sim.params, sim.status,
 #' \code{\link{step_simulation}}.
 #'
 #' The columns of this dataframe are: \code{case_id}, \code{source}, \code{is_traced},
-#' \code{is.trace_app_user}, \code{is_traced_by_app}, \code{is.trace_app_comply},
-#' \code{is_symptomatic}, \code{d.incub}, \code{d.iso_delay}, \code{d.infection},
-#' \code{sd_factor}, \code{n_sec_infects}, \code{d.serial_ints}, \code{t.inf},
-#' \code{t.symp}, \code{t.iso}, \code{t.inact}, \code{cases_inf}, \code{s.status},
+#' \code{is_trace_app_user}, \code{is_traced_by_app}, \code{is_trace_app_comply},
+#' \code{is_symptomatic}, \code{d_incub}, \code{d_iso_delay}, \code{d_infection},
+#' \code{sd_factor}, \code{n_sec_infects}, \code{d_serial_ints}, \code{t_inf},
+#' \code{t_symp}, \code{t_iso}, \code{t_inact}, \code{cases_inf}, \code{s_status},
 #' and \code{non_infect_serials}. The meaning of these columns will be documented elsewhere.
-#' Columns \code{case_id} through \code{t.inf} as well as column
+#' Columns \code{case_id} through \code{t_inf} as well as column
 #' \code{non_infect_serials} are constant and are initialized when this function
-#' is called, using the provided \code{state_df} object. The columns \code{t.symp},
-#' \code{t.iso} and \code{t.inact} are initialized as \code{NA} and replaced with the actual
+#' is called, using the provided \code{state_df} object. The columns \code{t_symp},
+#' \code{t_iso} and \code{t_inact} are initialized as \code{NA} and replaced with the actual
 #' simulation time where these events happen. If they do not happen (e.g. an asymptomatic
-#' case will not have a \code{t.symp} or \code{t.iso}), then the value remains as \code{NA}.
+#' case will not have a \code{t_symp} or \code{t_iso}), then the value remains as \code{NA}.
 #' The column \code{cases_inf} is meant for a list of case_id of all secondary infections
-#' caused by the given case but is not yet implemented. The column \code{s.status} is updated
+#' caused by the given case but is not yet implemented. The column \code{s_status} is updated
 #' by \code{\link{step_simulation}} at the appropriate time in the simulation.
 #'
 #' Note that all time lengths are given in days and values in columns beginning with
-#' \code{d.} are a period of days since the relevant reference time while columns
-#' beginning with \code{t.} are absolute time, measured in days since the simulation began.
+#' \code{d_} are a period of days since the relevant reference time while columns
+#' beginning with \code{t_} are absolute time, measured in days since the simulation began.
 #'
 #' @param state_df     \code{state_df} object for the cases to be generated
-#' @param sim.status   The \code{sim.status} state vector
+#' @param sim_status   The \code{sim_status} state vector
 #' @param initialize   A boolean indicating whether these cases are the first cases of the
 #'                     simulation. Defaults to \code{FALSE}.
 #' @param infection_source  A string or vector of case_ids representing the source of each
@@ -239,13 +239,13 @@ create_state_df <- function(n_cases, sim.params, sim.status,
 #'                          parameter cannot be NULL if \code{initialize} is \code{FALSE}.
 #' @return A \code{rec_df} dataframe object
 #' @export
-create_record_df <- function(state_df, sim.status, initialize=FALSE, infection_source=NULL){
+create_record_df <- function(state_df, sim_status, initialize=FALSE, infection_source=NULL){
   # List of columns to record
-  col_names <- c("case_id", "source", "is.traced", "is.trace_app_user", "is.traced_by_app",
-                 "is.trace_app_comply", "is.symptomatic", "d.incub", "d.iso_delay",
-                 "d.infection", "sd_factor", "n.sec_infects", "d.serial_ints",
-                 "t.inf", "t.symp", "t.iso", "t.inact",
-                 "cases_inf", "s.status", "non_infect_serials")
+  col_names <- c("case_id", "source", "is_traced", "is_trace_app_user", "is_traced_by_app",
+                 "is_trace_app_comply", "is_symptomatic", "d_incub", "d_iso_delay",
+                 "d_infection", "sd_factor", "n_sec_infects", "d_serial_ints",
+                 "t_inf", "t_symp", "t_iso", "t_inact",
+                 "cases_inf", "s_status", "non_infect_serials")
   n_cols <- length(col_names)
   # Get number of rows
   n_rows <- nrow(state_df)
@@ -258,20 +258,20 @@ create_record_df <- function(state_df, sim.status, initialize=FALSE, infection_s
   } else{
     rec_df$source <- infection_source # vector of source case_ids or import source provided
   }
-  rec_df$is.traced <- state_df$is_traced
-  rec_df$is.trace_app_user <- state_df$is_trace_app_user
-  rec_df$is.trace_app_comply <- state_df$is_trace_app_comply
-  rec_df$is.traced_by_app <- state_df$is_traced_by_app
-  rec_df$is.symptomatic <- state_df$is_symptomatic
-  rec_df$d.incub <- state_df$incubation_length
-  rec_df$d.iso_delay <- state_df$isolation_delay
-  rec_df$d.infection <- state_df$infection_length
+  rec_df$is_traced <- state_df$is_traced
+  rec_df$is_trace_app_user <- state_df$is_trace_app_user
+  rec_df$is_trace_app_comply <- state_df$is_trace_app_comply
+  rec_df$is_traced_by_app <- state_df$is_traced_by_app
+  rec_df$is_symptomatic <- state_df$is_symptomatic
+  rec_df$d_incub <- state_df$incubation_length
+  rec_df$d_iso_delay <- state_df$isolation_delay
+  rec_df$d_infection <- state_df$infection_length
   rec_df$sd_factor <- state_df$sd_factor
-  rec_df$n.sec_infects <- state_df$n_sec_infects
-  rec_df$d.serial_ints <- state_df$serial_intervals
+  rec_df$n_sec_infects <- state_df$n_sec_infects
+  rec_df$d_serial_ints <- state_df$serial_intervals
   #rec_df$sec_infects <- state_df$sec_infects
-  rec_df$t.inf <- rep(sim.status$t, n_rows)
-  rec_df$s.status <- state_df$status
+  rec_df$t_inf <- rep(sim_status$t, n_rows)
+  rec_df$s_status <- state_df$status
   rec_df$non_infect_serials <- state_df$non_infect_serials
 
   return(rec_df)
