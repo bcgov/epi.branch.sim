@@ -23,7 +23,7 @@
 #' loaded infection.
 #'
 #' @param state_df    \code{state_df} object for the simulation
-#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters
+#' @param sim_params  \code{sim_params} object (a list) containing simulation parameters
 #' @return A list containing
 #' \itemize{
 #'   \item \code{state_df} - The updated \code{state_df} object for the simulation
@@ -33,7 +33,7 @@
 #'   caused 1 infection. If no new secondary infections are generated in this time step,
 #'   this value is \code{NULL}.
 #' }
-generate_secondary_infections <- function(state_df, sim.params){
+generate_secondary_infections <- function(state_df, sim_params){
   sec_infection_sources <- c()
   if (nrow(state_df)>0){
     # TODO: Can we replace this for-loop?
@@ -63,43 +63,43 @@ generate_secondary_infections <- function(state_df, sim.params){
 #'
 #' The number of imported infections may be a deterministic or stochastic value.
 #'
-#' The list object \code{sim.params$import_params} determines how imported cases are
+#' The list object \code{sim_params$import_params} determines how imported cases are
 #' added to the simulation. The following import types are supported, which is chosen by
-#' \code{sim.params$import_params$type}:
+#' \code{sim_params$import_params$type}:
 #' \describe{
 #'  \item{\code{type}="None" or "none"}{No cases are imported.}
 #'
 #'  \item{\code{type}="daily_risk"}{Each day, the number of imported cases is drawn from a Poisson
 #'  distribution with mean equal to the daily risk. The daily risk is given by a vector defined by
-#'  \code{sim.params$import_params$risk}, which should have length equal to the number of days in the
+#'  \code{sim_params$import_params$risk}, which should have length equal to the number of days in the
 #'  simulation.}
 #'
 #'  \item{\code{type}="constant"}{Each day, the number of imported cases is equal to a constant value, set
-#'  by \code{sim.params$import_params$rate}.}
+#'  by \code{sim_params$import_params$rate}.}
 #'
 #'  \item{\code{type}="constant_two_phase"}{Same as the above, but with two possible constant values. For
-#'  times prior to \code{sim.params$import_params$delay}, the rate is \code{sim.params$import_params$rate1}.
-#'  After this time, the rate is \code{sim.params$import_params$rate2}.}
+#'  times prior to \code{sim_params$import_params$delay}, the rate is \code{sim_params$import_params$rate1}.
+#'  After this time, the rate is \code{sim_params$import_params$rate2}.}
 #'
 #'  \item{\code{type}="poisson"}{Each day, the number of imported cases is drawn from a Poisson distribution
-#'  with mean set by \code{sim.params$import_params$rate}.}
+#'  with mean set by \code{sim_params$import_params$rate}.}
 #' }
 #'
-#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters
-#' @param sim.status  \code{sim.status} object (a list) containing simulation state vector
+#' @param sim_params  \code{sim_params} object (a list) containing simulation parameters
+#' @param sim_status  \code{sim_status} object (a list) containing simulation state vector
 #' @return A list containing
 #' \itemize{
 #'   \item \code{n_imported_infections} - Integer with number of imported cases at this time step.
 #'   \item \code{import_source} - String describing the source of these new cases. This information
 #'   will be recorded in \code{state_df} and \code{record_df}. For now, this will always be "imported".
 #' }
-generate_imported_infections <- function(sim.params, sim.status){
-  import_params <- sim.params$import_params
+generate_imported_infections <- function(sim_params, sim_status){
+  import_params <- sim_params$import_params
   if (import_params$type=="None" | import_params$type=='none'){
     n_import<-0
   }
   else if (import_params$type=='daily_risk'){
-    risk_index <- sim.status$t
+    risk_index <- sim_status$t
     risk<-import_params$risk[risk_index]
     n_import <- rpois(1,risk)
   }
@@ -107,7 +107,7 @@ generate_imported_infections <- function(sim.params, sim.status){
     n_import <- import_params$rate
   }
   else if (import_params$type=='constant_two_phase'){
-    if (sim.status$t < import_params$delay){
+    if (sim_status$t < import_params$delay){
       n_import <- import_params$rate1
     } else{
       n_import <- import_params$rate2
