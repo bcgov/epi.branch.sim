@@ -24,7 +24,7 @@
 #'   \item \code{state}    - The updated \code{state_df} object
 #'   \item \code{record}   - The updated \code{record_df} object
 #'   \item \code{new_sec_cases} - Number of new secondary infections generated in this time step
-#'   \item \code{new_imp_cases} - Number of new imported infectoins generated in this time step
+#'   \item \code{new_imp_cases} - Number of new imported infections generated in this time step
 #' }
 #' @export
 step_simulation <- function(sim.status, state_df, rec_df, sim.params){
