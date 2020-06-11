@@ -4,23 +4,23 @@
 \alias{draw_serial_interval}
 \title{Generate serial intervals for potential secondary infections}
 \usage{
-draw_serial_interval(n, incubation_length, sim.params)
+draw_serial_interval(n, incubation_length, sim_params)
 }
 \arguments{
 \item{n}{Number of potential secondary infections for this case}
 
 \item{incubation_length}{Incubation period of this case (used in skewed normal distribution only)}
 
-\item{sim.params}{\code{sim.params} object (a list) containing simulation parameters, where
+\item{sim_params}{\code{sim_params} object (a list) containing simulation parameters, where
 all of the information needed to describe the distribution is found within
-\code{sim.params$serial_int_params}. Current distributions possible are:
+\code{sim_params$serial_int_params}. Current distributions possible are:
 \itemize{
 \item \code{dummy}: Uniform number between 1 and 5 (used for testing only)
 \item \code{skewed_norm}: Drawn from skewed normal distribution with xi set
 to the case's incubation period, and attributes "omega" and "alpha" given
-in \code{sim.params$serial_int_params}. This is what Hellewell uses.
+in \code{sim_params$serial_int_params}. This is what Hellewell uses.
 \item \code{gamma}: Drawn from a gamma distribution with attributes
-"shape" and "rate" given in \code{sim.params$serial_int_params}.
+"shape" and "rate" given in \code{sim_params$serial_int_params}.
 }}
 }
 \value{
@@ -28,5 +28,5 @@ A vector of length n for serial intervals of the case's potential secondary infe
 }
 \description{
 Serial intervals for each case's potential secondary infections are drawn from
-distribution defined in \code{sim.params$serial_int_params}
+distribution defined in \code{sim_params$serial_int_params}
 }

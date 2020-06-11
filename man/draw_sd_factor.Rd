@@ -4,13 +4,13 @@
 \alias{draw_sd_factor}
 \title{Assign social distancing behaviour to new cases}
 \usage{
-draw_sd_factor(n_cases, sim.params, sim.status)
+draw_sd_factor(n_cases, sim_params, sim_status)
 }
 \arguments{
 \item{n_cases}{Number of cases required}
 
-\item{sim.params}{\code{sim.params} object (a list) containing simulation parameters.
-Here, the sim.params$social_dist_params object contains the information
+\item{sim_params}{\code{sim_params} object (a list) containing simulation parameters.
+Here, the sim_params$social_dist_params object contains the information
 needed. This list should have the following entries:
 \itemize{
 \item \code{sd_pop_frac}: A number for the fraction of the general population
@@ -25,7 +25,7 @@ distancing at a certain time.
 contact rate changes. Set this to 0 or a very high number to have only one rate.
 }}
 
-\item{sim.status}{\code{sim.status} object (a list) containing simulation state vector}
+\item{sim_status}{\code{sim_status} object (a list) containing simulation state vector}
 }
 \value{
 A vector of length n for the sd_factor (double)

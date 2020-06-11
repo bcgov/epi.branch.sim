@@ -6,7 +6,7 @@
 \usage{
 create_record_df(
   state_df,
-  sim.status,
+  sim_status,
   initialize = FALSE,
   infection_source = NULL
 )
@@ -14,7 +14,7 @@ create_record_df(
 \arguments{
 \item{state_df}{\code{state_df} object for the cases to be generated}
 
-\item{sim.status}{The \code{sim.status} state vector}
+\item{sim_status}{The \code{sim_status} state vector}
 
 \item{initialize}{A boolean indicating whether these cases are the first cases of the
 simulation. Defaults to \code{FALSE}.}
@@ -39,22 +39,22 @@ The new \code{rec_df} object is merged with the main \code{rec_df} within
 \code{\link{step_simulation}}.
 
 The columns of this dataframe are: \code{case_id}, \code{source}, \code{is_traced},
-\code{is.trace_app_user}, \code{is_traced_by_app}, \code{is.trace_app_comply},
-\code{is_symptomatic}, \code{d.incub}, \code{d.iso_delay}, \code{d.infection},
-\code{sd_factor}, \code{n_sec_infects}, \code{d.serial_ints}, \code{t.inf},
-\code{t.symp}, \code{t.iso}, \code{t.inact}, \code{cases_inf}, \code{s.status},
+\code{is_trace_app_user}, \code{is_traced_by_app}, \code{is_trace_app_comply},
+\code{is_symptomatic}, \code{d_incub}, \code{d_iso_delay}, \code{d_infection},
+\code{sd_factor}, \code{n_sec_infects}, \code{d_serial_ints}, \code{t_inf},
+\code{t_symp}, \code{t_iso}, \code{t_inact}, \code{cases_inf}, \code{s_status},
 and \code{non_infect_serials}. The meaning of these columns will be documented elsewhere.
-Columns \code{case_id} through \code{t.inf} as well as column
+Columns \code{case_id} through \code{t_inf} as well as column
 \code{non_infect_serials} are constant and are initialized when this function
-is called, using the provided \code{state_df} object. The columns \code{t.symp},
-\code{t.iso} and \code{t.inact} are initialized as \code{NA} and replaced with the actual
+is called, using the provided \code{state_df} object. The columns \code{t_symp},
+\code{t_iso} and \code{t_inact} are initialized as \code{NA} and replaced with the actual
 simulation time where these events happen. If they do not happen (e.g. an asymptomatic
-case will not have a \code{t.symp} or \code{t.iso}), then the value remains as \code{NA}.
+case will not have a \code{t_symp} or \code{t_iso}), then the value remains as \code{NA}.
 The column \code{cases_inf} is meant for a list of case_id of all secondary infections
-caused by the given case but is not yet implemented. The column \code{s.status} is updated
+caused by the given case but is not yet implemented. The column \code{s_status} is updated
 by \code{\link{step_simulation}} at the appropriate time in the simulation.
 
 Note that all time lengths are given in days and values in columns beginning with
-\code{d.} are a period of days since the relevant reference time while columns
-beginning with \code{t.} are absolute time, measured in days since the simulation began.
+\code{d_} are a period of days since the relevant reference time while columns
+beginning with \code{t_} are absolute time, measured in days since the simulation began.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/setup_simulation.R
 \name{initialize_sim_status}
 \alias{initialize_sim_status}
-\title{Creates \code{sim.status} object, the simulation state vector}
+\title{Creates \code{sim_status} object, the simulation state vector}
 \usage{
 initialize_sim_status(start_time, initial_n_cases)
 }
@@ -20,9 +20,9 @@ A list containing the simulation state vector quantities, which includes:
 }
 \description{
 This object is a list containing the simulation state vector. This contains values that
-change with every time step. Note that \code{sim.params} is another important object
+change with every time step. Note that \code{sim_params} is another important object
 containing quantities that remain constant throughout the simulation. Currently, the
-only two items in \code{sim.status} are the time and the case_id of the last case
-infected (used to generate the next case_id). This function creates the \code{sim.status}
+only two items in \code{sim_status} are the time and the case_id of the last case
+infected (used to generate the next case_id). This function creates the \code{sim_status}
 object at the beginning of the simulation and only needs to be called once.
 }

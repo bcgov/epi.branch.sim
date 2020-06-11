@@ -6,7 +6,7 @@
 \usage{
 draw_isolation_delay_period(
   state_df,
-  sim.params,
+  sim_params,
   primary_state_df = NULL,
   primary_case_ids = NULL
 )
@@ -14,12 +14,12 @@ draw_isolation_delay_period(
 \arguments{
 \item{state_df}{\code{state_df} object for the simulation}
 
-\item{sim.params}{\code{sim.params} object (a list) containing simulation parameters, where
+\item{sim_params}{\code{sim_params} object (a list) containing simulation parameters, where
 all of the information needed to describe the distribution is found within
-\code{sim.params$iso_delay_params}. Current distributions possible are:
+\code{sim_params$iso_delay_params}. Current distributions possible are:
 \itemize{
 \item \code{uniform}: Delay is drawn from uniform distributions with
-attributes "min" and "max" given in \code{sim.params$iso_delay_params} for
+attributes "min" and "max" given in \code{sim_params$iso_delay_params} for
 each type of case. Min/Max values to be provided are:
 \itemize{
 \item \code{iso_delay_traced_[min|max]}: Range for manually traced cases
@@ -31,7 +31,7 @@ the distancing population (any case with sd_factor less than 1).
 Cases traced by the app (require both index and secondary cases to be app users
 \emph{and} for the secondary case to be app-compliant) have a zero day delay.
 \item \code{Hellewell}: Delay is drawn from a Weibull distribution with
-attributes "shape" and "scale" given in \code{sim.params$iso_delay_params}.
+attributes "shape" and "scale" given in \code{sim_params$iso_delay_params}.
 Traced cases have their delay set to zero days.
 }}
 
@@ -50,7 +50,7 @@ The number of days between symptom onset and isolation, which may be negative if
 occurs prior to symptom onset (as sometimes the case with traced cases).
 }
 \details{
-Within the list object \code{sim.params$iso_delay_params}, the user can define several delay
+Within the list object \code{sim_params$iso_delay_params}, the user can define several delay
 periods based on tracing type, tracing status, and whether the case is practicing distancing.
 Traced cases have their delays measured from the index case's isolation time, so traced cases
 may isolate prior to their own symptom onset. Untraced cases have delays measured from the start

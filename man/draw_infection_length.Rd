@@ -4,13 +4,13 @@
 \alias{draw_infection_length}
 \title{Determine infection length of new cases}
 \usage{
-draw_infection_length(n, sim.params)
+draw_infection_length(n, sim_params)
 }
 \arguments{
 \item{n}{Number of cases required}
 
-\item{sim.params}{\code{sim.params} object (a list) containing simulation parameters, here,
-the \code{sim.params$infect.dur} value is used the infection length in days.}
+\item{sim_params}{\code{sim_params} object (a list) containing simulation parameters, here,
+the \code{sim_params$infect_dur} value is used the infection length in days.}
 }
 \value{
 A vector of length n for infection duration (double)

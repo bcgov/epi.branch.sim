@@ -4,12 +4,12 @@
 \alias{generate_imported_infections}
 \title{Adds imported infections to simulation}
 \usage{
-generate_imported_infections(sim.params, sim.status)
+generate_imported_infections(sim_params, sim_status)
 }
 \arguments{
-\item{sim.params}{\code{sim.params} object (a list) containing simulation parameters}
+\item{sim_params}{\code{sim_params} object (a list) containing simulation parameters}
 
-\item{sim.status}{\code{sim.status} object (a list) containing simulation state vector}
+\item{sim_status}{\code{sim_status} object (a list) containing simulation state vector}
 }
 \value{
 A list containing
@@ -23,25 +23,25 @@ will be recorded in \code{state_df} and \code{record_df}. For now, this will alw
 The number of imported infections may be a deterministic or stochastic value.
 }
 \details{
-The list object \code{sim.params$import_params} determines how imported cases are
+The list object \code{sim_params$import_params} determines how imported cases are
 added to the simulation. The following import types are supported, which is chosen by
-\code{sim.params$import_params$type}:
+\code{sim_params$import_params$type}:
 \describe{
 \item{\code{type}="None" or "none"}{No cases are imported.}
 
 \item{\code{type}="daily_risk"}{Each day, the number of imported cases is drawn from a Poisson
 distribution with mean equal to the daily risk. The daily risk is given by a vector defined by
-\code{sim.params$import_params$risk}, which should have length equal to the number of days in the
+\code{sim_params$import_params$risk}, which should have length equal to the number of days in the
 simulation.}
 
 \item{\code{type}="constant"}{Each day, the number of imported cases is equal to a constant value, set
-by \code{sim.params$import_params$rate}.}
+by \code{sim_params$import_params$rate}.}
 
 \item{\code{type}="constant_two_phase"}{Same as the above, but with two possible constant values. For
-times prior to \code{sim.params$import_params$delay}, the rate is \code{sim.params$import_params$rate1}.
-After this time, the rate is \code{sim.params$import_params$rate2}.}
+times prior to \code{sim_params$import_params$delay}, the rate is \code{sim_params$import_params$rate1}.
+After this time, the rate is \code{sim_params$import_params$rate2}.}
 
 \item{\code{type}="poisson"}{Each day, the number of imported cases is drawn from a Poisson distribution
-with mean set by \code{sim.params$import_params$rate}.}
+with mean set by \code{sim_params$import_params$rate}.}
 }
 }

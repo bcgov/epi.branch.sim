@@ -38,8 +38,8 @@ Now we define parameters for the disease spread, interventions and other simulat
 ### Define disease parameters
 ```{r setup disease params}
 R0 <- 2.5
-infect.dur <- 14  # in days
-p.symp  <- 0.8 # percentage of cases that will be symptomatic
+infect_dur <- 14  # in days
+p_symp  <- 0.8 # percentage of cases that will be symptomatic
 incub_params <- list(dist='lognormal',meanlog=1.57, sdlog=0.65) # in days
 serial_int_params <- list(dist='gamma', shape=2.29, rate=0.36) # in days
 sec_infect_params <- list(type='Hellewell', disp=0.58) # negative binomial dispersion parameter
@@ -50,10 +50,10 @@ The incubation period and serial interval distributions are from [Bi et al. (202
 Tracing parameters:
 ```{r setup tracing params}
 # Contact tracing parameters
-do.variable.trace <- FALSE # use a constant tracing value (see next line)
-p.trace <- 0.75 # all cases have a 75% chance of being traced
-p.trace_app <- 0.75 # percentage of population using a contact tracing app
-p.trace_app_comp <- 0.75 # percentage of population complying with contact tracing app isolation instructions
+do_variable_trace <- FALSE # use a constant tracing value (see next line)
+p_trace <- 0.75 # all cases have a 75% chance of being traced
+p_trace_app <- 0.75 # percentage of population using a contact tracing app
+p_trace_app_comp <- 0.75 # percentage of population complying with contact tracing app isolation instructions
 ```
 
 Timeline for isolation of cases:
@@ -104,17 +104,17 @@ Run `?generate_imported_infections` to see the other stochastic and deterministi
 This package has four functions to create and initialize the four simulation objects. We'll use the parameters we just defined to create these four objects
 
 ```{r create sim objects}
-sim.params <- initialize_sim_params(
-  R0, infect.dur, do.variable.trace, p.trace, 
-  p.trace_app, p.trace_app_comp, p.symp, dt,
+sim_params <- initialize_sim_params(
+  R0, infect_dur, do_variable_trace, p_trace, 
+  p_trace_app, p_trace_app_comp, p_symp, dt,
   incub_params, serial_int_params,
   iso_delay_params, sec_infect_params,
   import_params, sd_params)
-sim.status <- initialize_sim_status(start_time,n_initial) 
-state_df   <- create_state_df(n_initial,sim.params, sim.status, initialize=TRUE)
-record_df  <- create_record_df(state_df, sim.status, initialize=TRUE)
+sim_status <- initialize_sim_status(start_time,n_initial) 
+state_df   <- create_state_df(n_initial,sim_params, sim_status, initialize=TRUE)
+record_df  <- create_record_df(state_df, sim_status, initialize=TRUE)
 ```
-Note that `sim.params` and `sim.status` need to be created first, because they are used as input to create the `state_df` and `record_df` objects.
+Note that `sim_params` and `sim_status` need to be created first, because they are used as input to create the `state_df` and `record_df` objects.
 
 Let's take a look at the first few rows of the `state_df` object to get a sense of what we have.
 ```{r peek state_df}
@@ -126,22 +126,22 @@ Now we can take a peek at `record_df`.
 ```{r peek record_df}
 head(record_df)
 ```
-Many of the same columns exist but there are a few more for better tracking. While information is removed from `state_df` as they are no longer needed (for instance, the serial intervals list shortens as the infections are loaded into the simulation and rows are removed entirely when the case no longer has further pending infections), `record_df` retains all the information until the end of the simulation. Here, columns for milestones beginning with `d.` (e.g. `d.incub`) are durations that are measured as a relative time. On the other hand, columns such as `t.symp` are absolute simulation times, which have value `NA` until these milestones occur. Note that not all cases will reach all milestones. See `?create_record_df` for more information on these columns.
+Many of the same columns exist but there are a few more for better tracking. While information is removed from `state_df` as they are no longer needed (for instance, the serial intervals list shortens as the infections are loaded into the simulation and rows are removed entirely when the case no longer has further pending infections), `record_df` retains all the information until the end of the simulation. Here, columns for milestones beginning with `d.` (e.g. `d.incub`) are durations that are measured as a relative time. On the other hand, columns such as `t_symp` are absolute simulation times, which have value `NA` until these milestones occur. Note that not all cases will reach all milestones. See `?create_record_df` for more information on these columns.
 
 
 ## Run simulation forward by one step
 The function `step_simulation` is provided to advance the simulation by one timestep `dt`. It takes the four simulation objects as input and returns the three objects that vary over time. These outputs can be used as input for the next step forward. Let's advance the simulation by one timestep (one day).
 
 ```{r run first step}
-out <- step_simulation(sim.status, state_df, record_df, sim.params)
-sim.status <- out$status
+out <- step_simulation(sim_status, state_df, record_df, sim_params)
+sim_status <- out$status
 state_df <- out$state
 record_df <- out$record
 ```
 
-We can check that `sim.status` is indeed updated.
-```{r check sim.status}
-print(sim.status)
+We can check that `sim_status` is indeed updated.
+```{r check sim_status}
+print(sim_status)
 ```
 This confirms that we are now at time 1 and there are 5 total cases as expected (one secondary infection from case ID 1 and one imported case).
 
@@ -161,15 +161,15 @@ head(record_df)
 ```
 We see much of the same information as before. The `source` column is helpful to identify what caused the infection. We see that Case 4 is indeed caused by Case 1 and Case 5 is an imported case. We also see that `n.sec_infects` in the `record_df` for Case 1 remains at 9 because `record_df` tracks the entire history or facts about each case while `state_df` just tracks what is necessary at a given time to advance the simulation. 
 
-It's important to note that `t.inf` (and other `t.*` columns) are given at the discrete simulation timesteps only (i.e. multiples of `dt`, which is 1 in this example). Remember that the first serial interval of Case 1 was 0.73 days, which led to Case 4. For the purposes of propagating infections and calculating Case 4's isolation time, Case 4 was infected at time `t=0.73 days`. But in these columns, `t.inf` for Case 4 is on day 1. Thus, these columns indicate the timestep where the case reach these milestones, not the actual time. These columns are best used for debugging rather than analysis.
+It's important to note that `t_inf` (and other `t_*` columns) are given at the discrete simulation timesteps only (i.e. multiples of `dt`, which is 1 in this example). Remember that the first serial interval of Case 1 was 0.73 days, which led to Case 4. For the purposes of propagating infections and calculating Case 4's isolation time, Case 4 was infected at time `t=0.73 days`. But in these columns, `t_inf` for Case 4 is on day 1. Thus, these columns indicate the timestep where the case reach these milestones, not the actual time. These columns are best used for debugging rather than analysis.
 
 ## Run the simulation to final timestep
 Now that we have run the simulation forward one timestep, we can just put everything in a loop and run it until we reach time of `tmax`.
 
 ```{r finish sim}
-for (t in (1+sim.status$t):tmax){ # t takes values 2,3,4,5,...30 (tmax)
-  out <- step_simulation(sim.status, state_df, record_df, sim.params)
-  sim.status <- out$status # update sim.status
+for (t in (1+sim_status$t):tmax){ # t takes values 2,3,4,5,...30 (tmax)
+  out <- step_simulation(sim_status, state_df, record_df, sim_params)
+  sim_status <- out$status # update sim_status
   state_df <- out$state    # update state_df
   record_df <- out$record  # update record_df
 }
@@ -177,7 +177,7 @@ for (t in (1+sim.status$t):tmax){ # t takes values 2,3,4,5,...30 (tmax)
 
 Let's confirm that the simulation is where we expect and count the number of cases
 ```{r check end of sim}
-sim.status$t
+sim_status$t
 nrow(state_df)
 nrow(record_df)
 ```
@@ -198,7 +198,7 @@ We can also examine the first five lines of `record_df`.
 ```{r check head record_df}
 head(record_df, n=5)
 ```
-We see the first five cases again, however, now that the simulation is ended, these cases are resolved (i.e. either isolated or inactive in the `s.status` column). The timesteps where certain milestones are reached (e.g. `t.*` columns) are completed now, with `NA` remaining for milestones that didn't happen. For instance, Cases 2, 3, and 5 were asymptomatic, so no `t.symp` is recorded. The `cases_inf` column is meant to record the case IDs of the secondary infections but this bookkeeping item is not yet implemented. This information could be reconstructed from the `source` column.
+We see the first five cases again, however, now that the simulation is ended, these cases are resolved (i.e. either isolated or inactive in the `s.status` column). The timesteps where certain milestones are reached (e.g. `t_*` columns) are completed now, with `NA` remaining for milestones that didn't happen. For instance, Cases 2, 3, and 5 were asymptomatic, so no `t_symp` is recorded. The `cases_inf` column is meant to record the case IDs of the secondary infections but this bookkeeping item is not yet implemented. This information could be reconstructed from the `source` column.
 
 ## Retrieve metrics from simulation
 While it could be interesting to examine the detailed case history of each simulation, typically, we want to do a statistical analysis to determine the distribution of various important quantities across many different simulations/realisations. We'll demonstrate some metrics that can be computed from `state_df` and `record_df`. 
@@ -233,7 +233,7 @@ We see that over the course of the simulation, the tracing and distancing interv
 
 Calculating Reff in this way is a look back to the beginning of the simulation, but it may not be a good reflection of the current transmission rates. Instead, we might want to just look at infections that began in the past 7 days. We can subset `record_df` to only include the most recent cases and do the same calculation.
 ```{r calc_Rt7}
-rec_df_last7 <- subset(record_df, t.inf > tmax-7) # record_df for infections from last 7 days
+rec_df_last7 <- subset(record_df, t_inf > tmax-7) # record_df for infections from last 7 days
 Rt <- mean(rec_df_last7$n.sec_infects)
 print(Rt)
 ```

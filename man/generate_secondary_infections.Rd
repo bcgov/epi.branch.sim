@@ -4,12 +4,12 @@
 \alias{generate_secondary_infections}
 \title{Adds secondary infections to simulation}
 \usage{
-generate_secondary_infections(state_df, sim.params)
+generate_secondary_infections(state_df, sim_params)
 }
 \arguments{
 \item{state_df}{\code{state_df} object for the simulation}
 
-\item{sim.params}{\code{sim.params} object (a list) containing simulation parameters}
+\item{sim_params}{\code{sim_params} object (a list) containing simulation parameters}
 }
 \value{
 A list containing

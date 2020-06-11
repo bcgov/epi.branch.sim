@@ -6,8 +6,8 @@
 \usage{
 create_state_df(
   n_cases,
-  sim.params,
-  sim.status,
+  sim_params,
+  sim_status,
   initialize = FALSE,
   import = FALSE,
   primary_state_df = NULL,
@@ -17,9 +17,9 @@ create_state_df(
 \arguments{
 \item{n_cases}{The number of cases to initialize in this dataframe}
 
-\item{sim.params}{The \code{sim.params} object containing disease and simulation parameters}
+\item{sim_params}{The \code{sim_params} object containing disease and simulation parameters}
 
-\item{sim.status}{The \code{sim.status} state vector}
+\item{sim_status}{The \code{sim_status} state vector}
 
 \item{initialize}{A boolean indicating whether these cases are the first cases of the
 simulation. Defaults to \code{FALSE}. Initial cases are never traced.}

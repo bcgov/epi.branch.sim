@@ -4,13 +4,13 @@
 \alias{draw_trace_app_compliance}
 \title{Determine whether a case will comply with tracing app instructions}
 \usage{
-draw_trace_app_compliance(state_df, sim.params)
+draw_trace_app_compliance(state_df, sim_params)
 }
 \arguments{
 \item{state_df}{\code{state_df} object for the new cases}
 
-\item{sim.params}{\code{sim.params} object (a list) containing simulation parameters, here,
-the \code{sim.params$p.trace_app_comp} value is used as the probability of
+\item{sim_params}{\code{sim_params} object (a list) containing simulation parameters, here,
+the \code{sim_params$p_trace_app_comp} value is used as the probability of
 contact tracing app compliance.}
 }
 \value{

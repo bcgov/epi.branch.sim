@@ -2,16 +2,16 @@
 % Please edit documentation in R/setup_simulation.R
 \name{initialize_sim_params}
 \alias{initialize_sim_params}
-\title{Creates \code{sim.params} object for global simulation parameters}
+\title{Creates \code{sim_params} object for global simulation parameters}
 \usage{
 initialize_sim_params(
   R0,
-  infect.dur,
-  vary.trace,
-  p.trace,
-  p.trace_app,
-  p.trace_app_comp,
-  p.symp,
+  infect_dur,
+  vary_trace,
+  p_trace,
+  p_trace_app,
+  p_trace_app_comp,
+  p_symp,
   dt,
   incub_params,
   serial_int_params,
@@ -26,21 +26,21 @@ initialize_sim_params(
 determine the number of potential secondary infections
 from a primary case.}
 
-\item{infect.dur}{Duration of infection (in days). This constant value determines when
+\item{infect_dur}{Duration of infection (in days). This constant value determines when
 a case is no longer active. It's also the length of the infectious
 period, unless the case is isolated. See \code{\link{draw_infection_length}}}
 
-\item{vary.trace}{Boolean to determine whether contact tracing is a constant or variable
+\item{vary_trace}{Boolean to determine whether contact tracing is a constant or variable
 based on the number of new cases in a cluster.
 See \code{\link{draw_traced_status}}}
 
-\item{p.trace}{Probability that a case will be manually traced.}
+\item{p_trace}{Probability that a case will be manually traced.}
 
-\item{p.trace_app}{Probability that a case will be a contact tracing app user.}
+\item{p_trace_app}{Probability that a case will be a contact tracing app user.}
 
-\item{p.trace_app_comp}{Probability that a case would comply with contact tracing app recommendations.}
+\item{p_trace_app_comp}{Probability that a case would comply with contact tracing app recommendations.}
 
-\item{p.symp}{Probability that a case is symptomatic.
+\item{p_symp}{Probability that a case is symptomatic.
 Used in \code{\link{draw_symptomatic_status}}.}
 
 \item{dt}{Size of the simulation time step (in days).}

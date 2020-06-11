@@ -69,9 +69,9 @@ This is the order of operations in each simulation timestep as implemented by th
 
 The simulation is controlled by four objects that contain information about the disease parameters for the simulation run, the current status of the simulation and the output. We keep all information within these objects so that we just have to pass the objects to the functions and adding new features is just adding more entries to these named list/matrix or dataframe objects. These four objects are:
 
-* `sim.params` is a named list containing the global parameters that will affect all cases. These include the disease parameters, simulation control parameters, and the definition of the distributions used to draw case-specific parameters. The contents of this list are constant within a simulation.
+* `sim_params` is a named list containing the global parameters that will affect all cases. These include the disease parameters, simulation control parameters, and the definition of the distributions used to draw case-specific parameters. The contents of this list are constant within a simulation.
 
-* `sim.status` is a named list acting as the "state vector" containing bookkeeping quantities not specific to any case that is generally updated at every timestep of the simulation.
+* `sim_status` is a named list acting as the "state vector" containing bookkeeping quantities not specific to any case that is generally updated at every timestep of the simulation.
 
 * `state_df` is a data frame acting as a state vector for all active cases. It should contain all the information about the case which is required to determine what happens to that case during a simulation. It is updated several times during each simulation step.
 

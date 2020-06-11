@@ -4,22 +4,22 @@
 \alias{draw_traced_status}
 \title{Determine whether a case is being manually traced by public health}
 \usage{
-draw_traced_status(n, sim.params)
+draw_traced_status(n, sim_params)
 }
 \arguments{
 \item{n}{Number of cases to consider}
 
-\item{sim.params}{\code{sim.params} object (a list) containing simulation parameters, where
+\item{sim_params}{\code{sim_params} object (a list) containing simulation parameters, where
 all of the information needed to determine the probability of a case being
-traced (\code{p.trace}) are found within:
+traced (\code{p_trace}) are found within:
 \itemize{
-\item \code{sim.params$vary.trace}: Boolean to determine whether
-\code{p.trace} varies based on cluster size or whether a single constant
-value for \code{p.trace} is used.
-\item \code{sim.params$p.trace_vary}: Defines the \code{p.trace} value for
-each cluster size group. Ignored if \code{sim.params$vary.trace} is \code{FALSE}.
-\item \code{sim.params$p.trace}: Constant \code{p.trace} value used at all times.
-Ignored if \code{sim.params$vary.trace} is \code{TRUE}.
+\item \code{sim_params$vary_trace}: Boolean to determine whether
+\code{p_trace} varies based on cluster size or whether a single constant
+value for \code{p_trace} is used.
+\item \code{sim_params$p_trace_vary}: Defines the \code{p_trace} value for
+each cluster size group. Ignored if \code{sim_params$vary_trace} is \code{FALSE}.
+\item \code{sim_params$p_trace}: Constant \code{p_trace} value used at all times.
+Ignored if \code{sim_params$vary_trace} is \code{TRUE}.
 }}
 }
 \value{
@@ -30,13 +30,13 @@ Draws a uniform random number and compares to trace probability to determine
 whether a case will be manually traced.
 }
 \details{
-The probability of a case being traced, \code{p.trace}, can either be a value that varies
-with cluster size (if \code{sim.params$vary.trace} is \code{TRUE}) or a constant value equal
-to \code{sim.params$p.trace} if \code{sim.params$vary.trace} is \code{FALSE}.
+The probability of a case being traced, \code{p_trace}, can either be a value that varies
+with cluster size (if \code{sim_params$vary_trace} is \code{TRUE}) or a constant value equal
+to \code{sim_params$p_trace} if \code{sim_params$vary_trace} is \code{FALSE}.
 
 When variable tracing based on cluster size is used, \code{n} is assumed to be the cluster size
 because it is assumed that this function would be called be \code{create_state_df} for all
 secondary infections together. The three possible variable tracing values are for cluster sizes of:
-less than 10 cases, 11-24 cases and 25 or more cases. The vector \code{sim.params$p.trace_vary}
+less than 10 cases, 11-24 cases and 25 or more cases. The vector \code{sim_params$p_trace_vary}
 sets the trace probability for each of these three cluster sizes.
 }

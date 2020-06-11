@@ -4,21 +4,21 @@
 \alias{step_simulation}
 \title{Takes the simulation one dt timestep forward}
 \usage{
-step_simulation(sim.status, state_df, rec_df, sim.params)
+step_simulation(sim_status, state_df, rec_df, sim_params)
 }
 \arguments{
-\item{sim.status}{\code{sim.status} list containing simulation state vector}
+\item{sim_status}{\code{sim_status} list containing simulation state vector}
 
 \item{state_df}{\code{state_df} object for the simulation}
 
 \item{rec_df}{\code{record_df} object for the simulation}
 
-\item{sim.params}{\code{sim.params} object (a list) containing simulation parameters}
+\item{sim_params}{\code{sim_params} object (a list) containing simulation parameters}
 }
 \value{
 A list containing
 \itemize{
-\item \code{status}   - The updated \code{sim.status} object
+\item \code{status}   - The updated \code{sim_status} object
 \item \code{state}    - The updated \code{state_df} object
 \item \code{record}   - The updated \code{record_df} object
 \item \code{new_sec_cases} - Number of new secondary infections generated in this time step

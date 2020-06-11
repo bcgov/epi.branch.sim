@@ -4,13 +4,13 @@
 \alias{draw_sec_infects_df}
 \title{Stage secondary infections when new cases are generated}
 \usage{
-draw_sec_infects_df(state_df, sim.params, sim.status, import = FALSE)
+draw_sec_infects_df(state_df, sim_params, sim_status, import = FALSE)
 }
 \arguments{
 \item{state_df}{\code{state_df} object for the newly generated cases}
 
-\item{sim.params}{\code{sim.params} object (a list) containing simulation parameters.
-Specifically, the \code{sim.params$sec_infect_params} object contains
+\item{sim_params}{\code{sim_params} object (a list) containing simulation parameters.
+Specifically, the \code{sim_params$sec_infect_params} object contains
 the parameters for generating secondary infections.
 This list should have the following entries:
 \itemize{
@@ -24,7 +24,7 @@ earlier than the primary case's time of isolation are kept.
 used to determine the number of potential secondary infections.
 }}
 
-\item{sim.status}{\code{sim.status} object (a list) containing simulation state vector}
+\item{sim_status}{\code{sim_status} object (a list) containing simulation state vector}
 
 \item{import}{A boolean indicating whether these new cases are imported cases instead
 of secondary infections. These cases may be required to self-isolate.

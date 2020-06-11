@@ -4,13 +4,13 @@
 \alias{draw_trace_app_user_status}
 \title{Determine whether a case is using a contact tracing app}
 \usage{
-draw_trace_app_user_status(n, sim.params)
+draw_trace_app_user_status(n, sim_params)
 }
 \arguments{
 \item{n}{Number of cases to consider}
 
-\item{sim.params}{\code{sim.params} object (a list) containing simulation parameters, here,
-the \code{sim.params$p.trace_app} value is used as the probability of
+\item{sim_params}{\code{sim_params} object (a list) containing simulation parameters, here,
+the \code{sim_params$p_trace_app} value is used as the probability of
 contact tracing app usage.}
 }
 \value{

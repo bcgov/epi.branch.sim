@@ -6,11 +6,11 @@
 \usage{
 run_scenario_Hellewell(
   nsims,
-  p.trace,
+  p_trace,
   R0,
   infections_before_symptoms = "medium",
   iso_delay_length = "short",
-  p.symp = 1,
+  p_symp = 1,
   initial_cases = 20,
   max_cases = 5000
 )
@@ -18,7 +18,7 @@ run_scenario_Hellewell(
 \arguments{
 \item{nsims}{Number of simulations to run in this scenario}
 
-\item{p.trace}{Fraction of new infections that are traced}
+\item{p_trace}{Fraction of new infections that are traced}
 
 \item{R0}{Basic reproduction number for disease}
 
@@ -34,7 +34,7 @@ by Hellewell for the delay from symptom onset to isolation for
 untraced symptomatic cases. "Short" is the default and
 benchmark value.}
 
-\item{p.symp}{Fraction of cases that are symptomatic. 1 is the default and benchmark value.}
+\item{p_symp}{Fraction of cases that are symptomatic. 1 is the default and benchmark value.}
 
 \item{initial_cases}{Number of cases at the start. 20 is the default and benchmark value}
 
@@ -44,7 +44,7 @@ outcome. Defaults to 5000, used by Hellewell et al.}
 \value{
 A named vector with the following entries describing the scenario and
 the outcome (percentage of simulations that went extinct and absolute number
-of each type of outcome). Namely the entries are: nsims, R0, p.trace,
+of each type of outcome). Namely the entries are: nsims, R0, p_trace,
 percentage, nsims_extinct, nsims_epidemic, nsims_ongoing.
 }
 \description{
