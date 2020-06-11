@@ -26,8 +26,8 @@
 #' #' following columns:
 #' #' \itemize{
 #' #'   \item date (\code{\link[base]{Dates}} objects),
-#' #'   \item n.iso (integer, total number of isolated cases on given day)
-#' #'   \item dn.iso (integer, number of new isolated cases on a given day)
+#' #'   \item n_iso (integer, total number of isolated cases on given day)
+#' #'   \item dn_iso (integer, number of new isolated cases on a given day)
 #' #'   \item reported (integer, number of total reported cases on a given day)
 #' #'   \item reported_daily (integer, number of new reported cases on a given day)
 #' #' }
@@ -40,20 +40,20 @@
 #' #' \preformatted{
 #' #'  results <- as_tibble(results) \%>\%
 #' #'    mutate(date=lubridate::as_date("2020-03-01")+lubridate::days(day)) \%>\%
-#' #'    mutate_at(c("R0","initial_n","p.trace","p.symp"),as.factor)
+#' #'    mutate_at(c("R0","initial_n","p_trace","p_symp"),as.factor)
 #' #' }
-#' #' where March 1, 2020 is simulation day 0 in this example. The column \code{dn.iso} can be
-#' #' computed from \code{n.iso} using
+#' #' where March 1, 2020 is simulation day 0 in this example. The column \code{dn_iso} can be
+#' #' computed from \code{n_iso} using
 #' #' \preformatted{
-#' #' dn.iso <- diff(results$n.iso) # the first entry (day 0) will be negative
-#' #' dn.iso <- c(0,dn.iso) # diff returns length n-1, add 0 to first position
-#' #' dn.iso[dn.iso<0] <- 0 # set the day 0 to zero
-#' #' results$dn.iso <- dn.iso
+#' #' dn_iso <- diff(results$n_iso) # the first entry (day 0) will be negative
+#' #' dn_iso <- c(0,dn_iso) # diff returns length n-1, add 0 to first position
+#' #' dn_iso[dn_iso<0] <- 0 # set the day 0 to zero
+#' #' results$dn_iso <- dn_iso
 #' #' }
 #' #' Finally, if using \code{plot_reported=TRUE}, then to add the \code{reported} column,
 #' #' it would be a good idea to use \code{NA} for the dates you don't want to plot as well
 #' #' as future dates where reported counts are not available. The \code{reported_daily}
-#' #' column can be computed in a similar way to the \code{dn.iso} example above.
+#' #' column can be computed in a similar way to the \code{dn_iso} example above.
 #' #'
 #' #' @param results         A tibble with required columns described here
 #' #' @param start_date      Start of x-axis, string in "YYYY-MM-DD" format
@@ -82,20 +82,20 @@
 #'                                  dark_quantiles=c(0.25,0.75),
 #'                                  light_quantiles=c(0.05,0.95),
 #'                                  legend_pos=c(0.25,0.75)){
-#'   paired.cols <- brewer.pal(12, "Paired")
-#'   colours <- c(label_projected = paired.cols[2], label_reported = paired.cols[8])
+#'   paired_cols <- brewer.pal(12, "Paired")
+#'   colours <- c(label_projected = paired_cols[2], label_reported = paired_cols[8])
 #'
 #'   # Create cumulative counts plot object with median and quantile bands
 #'   p1 <- ggplot(results, aes(x=date)) +
-#'     stat_summary(geom="ribbon", aes(y=n.iso),
+#'     stat_summary(geom="ribbon", aes(y=n_iso),
 #'                  fun.ymin = function(x) quantile(x, light_quantiles[1]),
 #'                  fun.ymax = function(x) quantile(x, light_quantiles[2]),
-#'                  fill=paired.cols[1], alpha=0.8) +
-#'     stat_summary(geom="ribbon", aes(y=n.iso),
+#'                  fill=paired_cols[1], alpha=0.8) +
+#'     stat_summary(geom="ribbon", aes(y=n_iso),
 #'                  fun.ymin = function(x) quantile(x, dark_quantiles[1]),
 #'                  fun.ymax = function(x) quantile(x, dark_quantiles[2]),
-#'                  fill=paired.cols[2], alpha=0.5) +
-#'     stat_summary(geom="line", aes(y=n.iso, color=label_projected),
+#'                  fill=paired_cols[2], alpha=0.5) +
+#'     stat_summary(geom="line", aes(y=n_iso, color=label_projected),
 #'                  fun.y=median, size=1.2)
 #'   # Add reported counts if set
 #'   if (plot_reported){
@@ -125,16 +125,16 @@
 #'
 #'   # Create daily counts plot object with median and quantile bands
 #'   p2 <- ggplot(results,aes(x=date)) +
-#'     stat_summary(geom="ribbon", aes(y=dn.iso),
+#'     stat_summary(geom="ribbon", aes(y=dn_iso),
 #'                  fun.ymin = function(x) quantile(x, light_quantiles[1]),
 #'                  fun.ymax = function(x) quantile(x, light_quantiles[2]),
-#'                  fill=paired.cols[1], alpha=0.8) +
-#'     stat_summary(geom="ribbon", aes(y=dn.iso),
+#'                  fill=paired_cols[1], alpha=0.8) +
+#'     stat_summary(geom="ribbon", aes(y=dn_iso),
 #'                  fun.ymin = function(x) quantile(x, dark_quantiles[1]),
 #'                  fun.ymax = function(x) quantile(x, dark_quantiles[2]),
-#'                  fill=paired.cols[2], alpha=0.5) +
-#'     stat_summary(geom="line", aes(y=dn.iso),
-#'                  fun.y=median, color=paired.cols[2], size=1.2)
+#'                  fill=paired_cols[2], alpha=0.5) +
+#'     stat_summary(geom="line", aes(y=dn_iso),
+#'                  fun.y=median, color=paired_cols[2], size=1.2)
 #'   # Add reported counts if set
 #'   if (plot_reported){
 #'     p2 <- p2 + geom_point(data=results,aes(y=reported_daily, color=label_reported), alpha=0.5)
@@ -168,7 +168,7 @@
 #' #' following columns:
 #' #' \itemize{
 #' #'   \item date (\code{\link[base]{Dates}} objects),
-#' #'   \item n.new_S (integer, total number of secondary cases on given day)
+#' #'   \item n_new_S (integer, total number of secondary cases on given day)
 #' #'   \item Reff (double, estimate of effective R up to a given day)
 #' #' }
 #' #'
@@ -180,7 +180,7 @@
 #' #' \preformatted{
 #' #'  results <- as_tibble(results) \%>\%
 #' #'    mutate(date=lubridate::as_date("2020-03-01")+lubridate::days(day)) \%>\%
-#' #'    mutate_at(c("R0","initial_n","p.trace","p.symp"),as.factor)
+#' #'    mutate_at(c("R0","initial_n","p_trace","p_symp"),as.factor)
 #' #' }
 #' #' where March 1, 2020 is simulation day 0 in this example.
 #' #'
@@ -202,20 +202,20 @@
 #'                       log_y_newS=FALSE,
 #'                       dark_quantiles=c(0.25,0.75),
 #'                       light_quantiles=c(0.05,0.95)){
-#'   paired.cols <- brewer.pal(12, "Paired")
+#'   paired_cols <- brewer.pal(12, "Paired")
 #'
 #'   # Generate plot, lines and bands
 #'   p1 <- ggplot(results, aes(x=date)) +
-#'     stat_summary(geom="ribbon", aes(y=n.new_S),
+#'     stat_summary(geom="ribbon", aes(y=n_new_S),
 #'                  fun.ymin = function(x) quantile(x, light_quantiles[1]),
 #'                  fun.ymax = function(x) quantile(x, light_quantiles[2]),
-#'                  fill=paired.cols[7], alpha=0.8) +
-#'     stat_summary(geom="ribbon", aes(y=n.new_S),
+#'                  fill=paired_cols[7], alpha=0.8) +
+#'     stat_summary(geom="ribbon", aes(y=n_new_S),
 #'                  fun.ymin = function(x) quantile(x, dark_quantiles[1]),
 #'                  fun.ymax = function(x) quantile(x, dark_quantiles[2]),
-#'                  fill=paired.cols[8], alpha=0.5) +
-#'     stat_summary(geom="line", aes(y=n.new_S),
-#'                  color=paired.cols[8], fun.y=median, size=1.2)
+#'                  fill=paired_cols[8], alpha=0.5) +
+#'     stat_summary(geom="line", aes(y=n_new_S),
+#'                  color=paired_cols[8], fun.y=median, size=1.2)
 #'   # Set plot scales and labels
 #'   p1 <- p1 + xlim(as.Date(start_date),as.Date(end_date)) +
 #'     labs(x="Date", y = "New secondary infections") +
@@ -236,13 +236,13 @@
 #'     stat_summary(geom="ribbon", aes(y=Reff),
 #'                  fun.ymin = function(x) quantile(x, light_quantiles[1]),
 #'                  fun.ymax = function(x) quantile(x, light_quantiles[2]),
-#'                  fill=paired.cols[1], alpha=0.8) +
+#'                  fill=paired_cols[1], alpha=0.8) +
 #'     stat_summary(geom="ribbon", aes(y=Reff),
 #'                  fun.ymin = function(x) quantile(x, dark_quantiles[1]),
 #'                  fun.ymax = function(x) quantile(x, dark_quantiles[2]),
-#'                  fill=paired.cols[2], alpha=0.5) +
+#'                  fill=paired_cols[2], alpha=0.5) +
 #'     stat_summary(geom="line", aes(y=Reff),
-#'                  fun.y=median, color=paired.cols[2], size=1.2)
+#'                  fun.y=median, color=paired_cols[2], size=1.2)
 #'   # Set plot scales and labels
 #'   p2 <- p2 + xlim(as.Date(start_date),as.Date(end_date)) +
 #'     labs(x="Date", y = "Effective R") +
