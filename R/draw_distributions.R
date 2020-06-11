@@ -14,41 +14,41 @@
 # Contains the functions that define how various parameters are drawn.
 # These functions should be called whenever a stochastic parameter is needed
 # so that it is easy swap between different methods. Generally, the
-# description for the distributions are defined in `sim.params`
+# description for the distributions are defined in `sim_params`
 
 #' Draw incubation periods for new cases from distribution
-#' defined in \code{sim.params$incub_params}
+#' defined in \code{sim_params$incub_params}
 #'
 #' @param n           Number of cases required
-#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters, where
+#' @param sim_params  \code{sim_params} object (a list) containing simulation parameters, where
 #'                    all of the information needed to describe the distribution is found within
-#'                    \code{sim.params$incub_params} Current distributions possible are:
+#'                    \code{sim_params$incub_params} Current distributions possible are:
 #'                    \itemize{
 #'                    \item \code{lognormal}: Delay is drawn from lognormal distribution with
-#'                    attributes "meanlog" and "sdlog" given in \code{sim.params$incub_params}.
+#'                    attributes "meanlog" and "sdlog" given in \code{sim_params$incub_params}.
 #'                    for traced cases. Untraced cases have a further delay of "delay" days.
 #'                    \item \code{weibull}: Delay is drawn from a Weibull distribution with
-#'                    attributes "shape" and "scale" given in \code{sim.params$incub_params}.
+#'                    attributes "shape" and "scale" given in \code{sim_params$incub_params}.
 #'                    Traced cases have their delay set to zero days.
 #'                    }
 #' @return A vector of length n for case incubation period (double)
-draw_incubation_period <- function(n, sim.params){
-  if (sim.params$incub_params$dist=='lognormal'){
-    return(rlnorm(n, meanlog=sim.params$incub_params$meanlog, sdlog=sim.params$incub_params$sdlog))
-  } else if (sim.params$incub_params$dist=='weibull'){
-    return(rweibull(n, shape=sim.params$incub_params$shape, scale=sim.params$incub_params$scale))
+draw_incubation_period <- function(n, sim_params){
+  if (sim_params$incub_params$dist=='lognormal'){
+    return(rlnorm(n, meanlog=sim_params$incub_params$meanlog, sdlog=sim_params$incub_params$sdlog))
+  } else if (sim_params$incub_params$dist=='weibull'){
+    return(rweibull(n, shape=sim_params$incub_params$shape, scale=sim_params$incub_params$scale))
   }
 }
 
 #' Determine whether a new case is symptomatic from a uniform distribution
 #'
 #' @param n           Number of cases required
-#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters, here,
-#'                    the \code{sim.params$p.sym} value is used as the probability of a case
+#' @param sim_params  \code{sim_params} object (a list) containing simulation parameters, here,
+#'                    the \code{sim_params$p_sym} value is used as the probability of a case
 #'                    being symptomatic.
 #' @return A boolean vector of length n for whether a case is symptomatic
-draw_symptomatic_status <- function(n, sim.params){
- return(runif(n) < sim.params$p.sym)
+draw_symptomatic_status <- function(n, sim_params){
+ return(runif(n) < sim_params$p_sym)
 }
 
 #' Draw delay to isolation periods for new cases
@@ -56,7 +56,7 @@ draw_symptomatic_status <- function(n, sim.params){
 #' The number of days between symptom onset and isolation, which may be negative if isolation
 #' occurs prior to symptom onset (as sometimes the case with traced cases).
 #'
-#' Within the list object \code{sim.params$iso_delay_params}, the user can define several delay
+#' Within the list object \code{sim_params$iso_delay_params}, the user can define several delay
 #' periods based on tracing type, tracing status, and whether the case is practicing distancing.
 #' Traced cases have their delays measured from the index case's isolation time, so traced cases
 #' may isolate prior to their own symptom onset. Untraced cases have delays measured from the start
@@ -68,12 +68,12 @@ draw_symptomatic_status <- function(n, sim.params){
 #' returned by this function may be negative if isolation occurs prior to symptom onset.
 #'
 #' @param state_df    \code{state_df} object for the simulation
-#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters, where
+#' @param sim_params  \code{sim_params} object (a list) containing simulation parameters, where
 #'                    all of the information needed to describe the distribution is found within
-#'                    \code{sim.params$iso_delay_params}. Current distributions possible are:
+#'                    \code{sim_params$iso_delay_params}. Current distributions possible are:
 #'                    \itemize{
 #'                    \item \code{uniform}: Delay is drawn from uniform distributions with
-#'                    attributes "min" and "max" given in \code{sim.params$iso_delay_params} for
+#'                    attributes "min" and "max" given in \code{sim_params$iso_delay_params} for
 #'                    each type of case. Min/Max values to be provided are:
 #'                       \itemize{
 #'                       \item \code{iso_delay_traced_[min|max]}: Range for manually traced cases
@@ -85,7 +85,7 @@ draw_symptomatic_status <- function(n, sim.params){
 #'                    Cases traced by the app (require both index and secondary cases to be app users
 #'                    *and* for the secondary case to be app-compliant) have a zero day delay.
 #'                    \item \code{Hellewell}: Delay is drawn from a Weibull distribution with
-#'                    attributes "shape" and "scale" given in \code{sim.params$iso_delay_params}.
+#'                    attributes "shape" and "scale" given in \code{sim_params$iso_delay_params}.
 #'                    Traced cases have their delay set to zero days.
 #'                    }
 #' @param primary_state_df  The \code{state_df} object for the index/primary cases. Defaults to \code{NULL}.
@@ -94,10 +94,10 @@ draw_symptomatic_status <- function(n, sim.params){
 #' @param primary_case_ids  A list of case_ids for the primary cases. Not required for initial or imported
 #'                          cases. Defaults to \code{NULL}.
 #' @return A vector of length n for case delay to isolation, measured from start of symptom onset (double)
-draw_isolation_delay_period <- function(state_df, sim.params,
+draw_isolation_delay_period <- function(state_df, sim_params,
                                         primary_state_df=NULL,
                                         primary_case_ids=NULL){
-  iso_delay_params <- sim.params$iso_delay_params
+  iso_delay_params <- sim_params$iso_delay_params
   if (iso_delay_params$dist=='uniform'){
     n<-nrow(state_df)
     # Draw an isolation delay time assuming everyone is untraced at first,
@@ -203,43 +203,43 @@ draw_isolation_delay_period <- function(state_df, sim.params,
 #' Draws a uniform random number and compares to trace probability to determine
 #' whether a case will be manually traced.
 #'
-#' The probability of a case being traced, \code{p.trace}, can either be a value that varies
-#' with cluster size (if \code{sim.params$vary.trace} is \code{TRUE}) or a constant value equal
-#' to \code{sim.params$p.trace} if \code{sim.params$vary.trace} is \code{FALSE}.
+#' The probability of a case being traced, \code{p_trace}, can either be a value that varies
+#' with cluster size (if \code{sim_params$vary_trace} is \code{TRUE}) or a constant value equal
+#' to \code{sim_params$p_trace} if \code{sim_params$vary_trace} is \code{FALSE}.
 #'
 #' When variable tracing based on cluster size is used, \code{n} is assumed to be the cluster size
 #' because it is assumed that this function would be called be \code{create_state_df} for all
 #' secondary infections together. The three possible variable tracing values are for cluster sizes of:
-#' less than 10 cases, 11-24 cases and 25 or more cases. The vector \code{sim.params$p.trace_vary}
+#' less than 10 cases, 11-24 cases and 25 or more cases. The vector \code{sim_params$p_trace_vary}
 #' sets the trace probability for each of these three cluster sizes.
 #'
 #' @param n           Number of cases to consider
-#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters, where
+#' @param sim_params  \code{sim_params} object (a list) containing simulation parameters, where
 #'                    all of the information needed to determine the probability of a case being
-#'                    traced (\code{p.trace}) are found within:
+#'                    traced (\code{p_trace}) are found within:
 #'                    \itemize{
-#'                    \item \code{sim.params$vary.trace}: Boolean to determine whether
-#'                    \code{p.trace} varies based on cluster size or whether a single constant
-#'                    value for \code{p.trace} is used.
-#'                    \item \code{sim.params$p.trace_vary}: Defines the \code{p.trace} value for
-#'                    each cluster size group. Ignored if \code{sim.params$vary.trace} is \code{FALSE}.
-#'                    \item \code{sim.params$p.trace}: Constant \code{p.trace} value used at all times.
-#'                    Ignored if \code{sim.params$vary.trace} is \code{TRUE}.
+#'                    \item \code{sim_params$vary_trace}: Boolean to determine whether
+#'                    \code{p_trace} varies based on cluster size or whether a single constant
+#'                    value for \code{p_trace} is used.
+#'                    \item \code{sim_params$p_trace_vary}: Defines the \code{p_trace} value for
+#'                    each cluster size group. Ignored if \code{sim_params$vary_trace} is \code{FALSE}.
+#'                    \item \code{sim_params$p_trace}: Constant \code{p_trace} value used at all times.
+#'                    Ignored if \code{sim_params$vary_trace} is \code{TRUE}.
 #'                    }
 #' @return A boolean vector of length n for each case's manual tracing status
-draw_traced_status <- function(n, sim.params){
-  if (sim.params$vary.trace){
+draw_traced_status <- function(n, sim_params){
+  if (sim_params$vary_trace){
     if(n<10){
-      p_trace<-sim.params$p.trace_vary[1]
+      p_trace<-sim_params$p_trace_vary[1]
     }
     else if(n<25){
-      p_trace<-sim.params$p.trace_vary[2]
+      p_trace<-sim_params$p_trace_vary[2]
     } else{
-      p_trace<-sim.params$p.trace_vary[3]
+      p_trace<-sim_params$p_trace_vary[3]
     }
     return(runif(n) < p_trace)
   } else{ # otherwise, use fixed tracing value
-    return(runif(n) < sim.params$p.trace)
+    return(runif(n) < sim_params$p_trace)
   }
 }
 
@@ -250,12 +250,12 @@ draw_traced_status <- function(n, sim.params){
 #' secondary case and the primary/index case must both be app users.
 #'
 #' @param n           Number of cases to consider
-#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters, here,
-#'                    the \code{sim.params$p.trace_app} value is used as the probability of
+#' @param sim_params  \code{sim_params} object (a list) containing simulation parameters, here,
+#'                    the \code{sim_params$p_trace_app} value is used as the probability of
 #'                    contact tracing app usage.
 #' @return A boolean vector of length n for each case's app usage status
-draw_trace_app_user_status <- function(n, sim.params){
-  return(runif(n) < sim.params$p.trace_app)
+draw_trace_app_user_status <- function(n, sim_params){
+  return(runif(n) < sim_params$p_trace_app)
 }
 
 #' Helper function to check primary and secondary trace_app_user status
@@ -283,13 +283,13 @@ draw_traced_by_app <- function(state_df, primary_state_df, primary_case_ids){
 #' is determined (but never used) even for cases that aren't traced by the app.
 #'
 #' @param state_df    \code{state_df} object for the new cases
-#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters, here,
-#'                    the \code{sim.params$p.trace_app_comp} value is used as the probability of
+#' @param sim_params  \code{sim_params} object (a list) containing simulation parameters, here,
+#'                    the \code{sim_params$p_trace_app_comp} value is used as the probability of
 #'                    contact tracing app compliance.
 #' @return A boolean vector of length n for each case's app compliance status
-draw_trace_app_compliance <- function(state_df, sim.params){
+draw_trace_app_compliance <- function(state_df, sim_params){
   n <- nrow(state_df)
-  rng <- runif(n) < sim.params$p.trace_app_comp
+  rng <- runif(n) < sim_params$p_trace_app_comp
   return(state_df$is_trace_app_user & rng)
 }
 
@@ -298,11 +298,11 @@ draw_trace_app_compliance <- function(state_df, sim.params){
 #' Currently a constant number for all cases
 #'
 #' @param n           Number of cases required
-#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters, here,
-#'                    the \code{sim.params$infect.dur} value is used the infection length in days.
+#' @param sim_params  \code{sim_params} object (a list) containing simulation parameters, here,
+#'                    the \code{sim_params$infect_dur} value is used the infection length in days.
 #' @return A vector of length n for infection duration (double)
-draw_infection_length <- function(n, sim.params){
-  return(rep(sim.params$infect.dur,n))
+draw_infection_length <- function(n, sim_params){
+  return(rep(sim_params$infect_dur,n))
 }
 
 #' Assign social distancing behaviour to new cases
@@ -325,8 +325,8 @@ draw_infection_length <- function(n, sim.params){
 #' the fraction of distancers in the general population.
 #'
 #' @param n_cases     Number of cases required
-#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters.
-#'                    Here, the sim.params$social_dist_params object contains the information
+#' @param sim_params  \code{sim_params} object (a list) containing simulation parameters.
+#'                    Here, the sim_params$social_dist_params object contains the information
 #'                    needed. This list should have the following entries:
 #'                    \itemize{
 #'                    \item \code{sd_pop_frac}: A number for the fraction of the general population
@@ -340,12 +340,12 @@ draw_infection_length <- function(n, sim.params){
 #'                    \item \code{sd_change_t}: The simulation time where the distancing population's
 #'                    contact rate changes. Set this to 0 or a very high number to have only one rate.
 #'                    }
-#' @param sim.status  \code{sim.status} object (a list) containing simulation state vector
+#' @param sim_status  \code{sim_status} object (a list) containing simulation state vector
 #' @return A vector of length n for the sd_factor (double)
-draw_sd_factor <- function(n_cases, sim.params, sim.status){
-  sd_params <- sim.params$social_dist_params
+draw_sd_factor <- function(n_cases, sim_params, sim_status){
+  sd_params <- sim_params$social_dist_params
   # Allows for a different contact rate for the SD group before and after a change time
-  if (sim.status$t < sd_params$sd_change_t){
+  if (sim_status$t < sd_params$sd_change_t){
     sd_contact_rate <- sd_params$sd_contact_rate1  # rate before change time
   } else {
     sd_contact_rate <- sd_params$sd_contact_rate2  # rate after change time
@@ -385,8 +385,8 @@ draw_sd_factor <- function(n_cases, sim.params, sim.status){
 #' generated by a call to \code{draw_serial_interval}.
 #'
 #' @param state_df    \code{state_df} object for the newly generated cases
-#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters.
-#'                    Specifically, the \code{sim.params$sec_infect_params} object contains
+#' @param sim_params  \code{sim_params} object (a list) containing simulation parameters.
+#'                    Specifically, the \code{sim_params$sec_infect_params} object contains
 #'                    the parameters for generating secondary infections.
 #'                    This list should have the following entries:
 #'                    \itemize{
@@ -399,7 +399,7 @@ draw_sd_factor <- function(n_cases, sim.params, sim.status){
 #'                    \item \code{disp}: The dispersion value for the negative binomial distribution
 #'                    used to determine the number of potential secondary infections.
 #'                    }
-#' @param sim.status  \code{sim.status} object (a list) containing simulation state vector
+#' @param sim_status  \code{sim_status} object (a list) containing simulation state vector
 #' @param import      A boolean indicating whether these new cases are imported cases instead
 #'                    of secondary infections. These cases may be required to self-isolate.
 #'                    Defaults to \code{FALSE}.
@@ -412,9 +412,9 @@ draw_sd_factor <- function(n_cases, sim.params, sim.status){
 #'   vector of serial intervals of rejected secondary infections, for debugging.
 #' }
 #'
-draw_sec_infects_df <- function(state_df, sim.params, sim.status, import=FALSE){
+draw_sec_infects_df <- function(state_df, sim_params, sim_status, import=FALSE){
   n_cases = nrow(state_df)
-  if (sim.params$sec_infect_params$type=='Hellewell'){
+  if (sim_params$sec_infect_params$type=='Hellewell'){
     # Following Hellewell et al, for each case, determine
     # number of sec. infections and serial interval of each sec. infection
     col_names <- c('n_infect', 'serial_int')
@@ -422,31 +422,31 @@ draw_sec_infects_df <- function(state_df, sim.params, sim.status, import=FALSE){
     # Determine which social distancing group cases belong to
     sd_factor <- state_df$sd_factor
     # Determine number of secondary infections drawn from neg. binomial
-    mean_infect <- sim.params$R0 * sd_factor
-    disp_infect <- sim.params$sec_infect_params$disp
-    n.infect <- rnbinom(n_cases, mu=mean_infect, size=disp_infect)
+    mean_infect <- sim_params$R0 * sd_factor
+    disp_infect <- sim_params$sec_infect_params$disp
+    n_infect <- rnbinom(n_cases, mu=mean_infect, size=disp_infect)
     # Determine serial interval of each secondary infection for each infector source case
-    if (sim.params$serial_int_params$dist=='gamma'){ # BC case
-      serial.int <- mapply(draw_serial_interval, # FUN to be called on each X
-                           n.infect, # X to loop over
-                           MoreArgs=list(sim.params=sim.params), # additional required input for FUN
+    if (sim_params$serial_int_params$dist=='gamma'){ # BC case
+      serial_int <- mapply(draw_serial_interval, # FUN to be called on each X
+                           n_infect, # X to loop over
+                           MoreArgs=list(sim_params=sim_params), # additional required input for FUN
                            SIMPLIFY = FALSE) # force return as list
-    } else if (sim.params$serial_int_params$dist=='skewed_norm'){
-      serial.int <- mapply(draw_serial_interval, # FUN to be called on each X1, X2
-                           n.infect,             # X1 to loop over
+    } else if (sim_params$serial_int_params$dist=='skewed_norm'){
+      serial_int <- mapply(draw_serial_interval, # FUN to be called on each X1, X2
+                           n_infect,             # X1 to loop over
                            state_df$incubation_length, #X2 to loop over
-                           MoreArgs = list(sim.params = sim.params),# additional required input for FUN
+                           MoreArgs = list(sim_params = sim_params),# additional required input for FUN
                            SIMPLIFY = FALSE) # force return as list
     }
     # Sort serial intervals in ascending order
-    serial.int<-lapply(serial.int,sort)
+    serial_int<-lapply(serial_int,sort)
     ## Determine the days that each case is contagious
     # First day based on whether it's imported (imported cases may be required to isolate)
     if (import){
-      import_params <- sim.params$import_params
+      import_params <- sim_params$import_params
       first_day_contagious <- sample(x=import_params$iso_lengths,
                                      size=n_cases,
-                                     prob=import_params$iso_p.group,
+                                     prob=import_params$iso_p_group,
                                      replace=TRUE)
     } else {
       first_day_contagious <-rep(0,n_cases)
@@ -475,64 +475,64 @@ draw_sec_infects_df <- function(state_df, sim.params, sim.status, import=FALSE){
     # Split the serial interval list.
     # Keep the valid infections for model, store the rest for record keeping
     serial_keep <- lapply(
-      seq_along(serial.int),
+      seq_along(serial_int),
       function(ii, serial, first_day, last_day){
         index_to_keep <- (serial[[ii]] > first_day[ii]) &
           (serial[[ii]] < last_day[ii])
         return(serial[[ii]][index_to_keep])
       },
-      serial=serial.int,
+      serial=serial_int,
       first_day=first_day_contagious,
       last_day=last_day_contagious
     )
     serial_reject <- lapply(
-      seq_along(serial.int),
+      seq_along(serial_int),
       function(ii, serial, first_day, last_day){
         index_to_keep <- (serial[[ii]] > first_day[ii]) &
           (serial[[ii]] < last_day[ii])
         return(serial[[ii]][!index_to_keep])
       },
-      serial=serial.int,
+      serial=serial_int,
       first_day=first_day_contagious,
       last_day=last_day_contagious
     )
     # Get number of actual infections
-    n.infect <- sapply(serial_keep,length)
+    n_infect <- sapply(serial_keep,length)
     # Will probably move this outside of the if-block when other methods added
-    return(list(n=n.infect,serial=serial_keep,non_infects=serial_reject))
+    return(list(n=n_infect,serial=serial_keep,non_infects=serial_reject))
   }
 }
 
 #' Generate serial intervals for potential secondary infections
 #'
 #' Serial intervals for each case's potential secondary infections are drawn from
-#' distribution defined in \code{sim.params$serial_int_params}
+#' distribution defined in \code{sim_params$serial_int_params}
 #'
 #' @param n                   Number of potential secondary infections for this case
 #' @param incubation_length   Incubation period of this case (used in skewed normal distribution only)
-#' @param sim.params  \code{sim.params} object (a list) containing simulation parameters, where
+#' @param sim_params  \code{sim_params} object (a list) containing simulation parameters, where
 #'                    all of the information needed to describe the distribution is found within
-#'                    \code{sim.params$serial_int_params}. Current distributions possible are:
+#'                    \code{sim_params$serial_int_params}. Current distributions possible are:
 #'                    \itemize{
 #'                    \item \code{dummy}: Uniform number between 1 and 5 (used for testing only)
 #'                    \item \code{skewed_norm}: Drawn from skewed normal distribution with xi set
 #'                    to the case's incubation period, and attributes "omega" and "alpha" given
-#'                    in \code{sim.params$serial_int_params}. This is what Hellewell uses.
+#'                    in \code{sim_params$serial_int_params}. This is what Hellewell uses.
 #'                    \item \code{gamma}: Drawn from a gamma distribution with attributes
-#'                    "shape" and "rate" given in \code{sim.params$serial_int_params}.
+#'                    "shape" and "rate" given in \code{sim_params$serial_int_params}.
 #'                    }
 #' @return A vector of length n for serial intervals of the case's potential secondary infections
-draw_serial_interval <- function(n, incubation_length, sim.params){
-  if (sim.params$iso_delay_params$dist=='dummy'){
+draw_serial_interval <- function(n, incubation_length, sim_params){
+  if (sim_params$iso_delay_params$dist=='dummy'){
     return(runif(n,min=1,max=5))
-  } else if (sim.params$serial_int_params$dist=='skewed_norm'){
+  } else if (sim_params$serial_int_params$dist=='skewed_norm'){
     sn_xi = incubation_length # case incubation period
-    sn_omega = sim.params$serial_int_params$omega
-    sn_alpha = sim.params$serial_int_params$alpha
+    sn_omega = sim_params$serial_int_params$omega
+    sn_alpha = sim_params$serial_int_params$alpha
     serial_ints <- sn::rsn(n, xi=sn_xi, omega=sn_omega, alpha=sn_alpha)
     return(as.numeric(serial_ints))
-  } else if (sim.params$serial_int_params$dist=='gamma'){
-    serial_ints <- rgamma(n, shape=sim.params$serial_int_params$shape, rate=sim.params$serial_int_params$rate)
+  } else if (sim_params$serial_int_params$dist=='gamma'){
+    serial_ints <- rgamma(n, shape=sim_params$serial_int_params$shape, rate=sim_params$serial_int_params$rate)
     return(serial_ints)
   }
 }
