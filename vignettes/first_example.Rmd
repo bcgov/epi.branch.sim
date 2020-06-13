@@ -20,14 +20,14 @@ knitr::opts_chunk$set(
 pre, code {white-space:pre !important; overflow-x:auto}
 ```
 
-This vignette demonstrates how to run a single simple example simulation with `epi.branch.sim`. It assumes you have read [the introductory vignette](introduction.html) which gave a high level overview of the package, the simulation algorithm and the description of the main simulation objects.
+This vignette demonstrates how to run a single simple simulation example with `epi.branch.sim`. It assumes you have read [the introductory vignette](introduction.html) which gave a high level overview of the package, the simulation algorithm, and the description of the main simulation objects.
 
 In this vignette, we will use the package's exposed functions to set up and run a simulation. We will examine the output and show how we can compute metrics from the output.
 
 In other vignettes, we will look at how to use "driver" functions to set up a series of simulations, run them, and extract metrics to be used in analysis. This package also contains some example driver functions but more advanced analysis will require a user-customized driver function.
 
 ## Set up simulation
-First, load the library amd set a random seed for reproducibility.
+First, load the library and set a random seed for reproducibility.
 ```{r setup}
 library(epi.branch.sim)
 set.seed(3483)
