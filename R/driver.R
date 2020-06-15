@@ -99,7 +99,7 @@ run_scenario_Hellewell <- function(nsims,p_trace,R0,
     infect_dur <- 999 # Hellewell et al. doesn't deactivate cases so we won't either
     dt <- 1 # Advance one day at a time
     import_params <- 'None'
-    social_dist_params <- list(contact_rates=c(1),p_group=c(1),delay=0)
+    phys_dist_params <- list(contact_rates=c(1),p_group=c(1),delay=0)
     do_variable_trace<-FALSE
 
     # Initialize the required simulation objects
@@ -107,7 +107,7 @@ run_scenario_Hellewell <- function(nsims,p_trace,R0,
       R0, infect_dur, do_variable_trace, p_trace,
       p_symp, dt, incub_params, serial_int_params,
       iso_delay_params, sec_infect_params,
-      import_params, social_dist_params
+      import_params, phys_dist_params
     )
     sim_status <- initialize_sim_status(initial_n_cases, sim_status)
     state_df   <- create_state_df(0,initial_n_cases,sim_params, initialize=TRUE)
@@ -192,12 +192,12 @@ run_scenarios <- function(scenario_params, outdir='.',
     else{
       import_params <- get_import_params(file.path('data',paste0(import_model,'.csv')))
     }
-    social_dist_params <- list(contact_rates=contact_rates, p_group=pd_p_group, delay=pd_delay)
+    phys_dist_params <- list(contact_rates=contact_rates, p_group=pd_p_group, delay=pd_delay)
     sim_params <- initialize_sim_params(R0, infect_dur, do_variable_trace, p_trace,
                                         p_symp, dt,
                                         incub_params, serial_int_params,
                                         iso_delay_params, sec_infect_params,
-                                        import_params, social_dist_params)
+                                        import_params, phys_dist_params)
     sim_status <- initialize_sim_status(0,n_initial)
     state_df   <- create_state_df(n_initial, sim_params, sim_status, initialize=TRUE)
     record_df  <- create_record_df(state_df, sim_status, initialize=TRUE)

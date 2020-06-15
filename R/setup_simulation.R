@@ -42,7 +42,7 @@
 #'                           See \code{\link{draw_sec_infects_df}}
 #' @param import_params      Parameters to model imported infections.
 #'                           See \code{\link{generate_imported_infections}}
-#' @param social_dist_params Parameters to model social/physical distancing or
+#' @param phys_dist_params   Parameters to model physical (social) distancing or
 #'                           other interventions that reduce the potential to
 #'                           cause secondary infections.
 #'                           See \code{\link{draw_contract_rate}}
@@ -52,7 +52,7 @@ initialize_sim_params <- function(R0, infect_dur, vary_trace, p_trace,
                                   p_trace_app, p_trace_app_comp, p_symp, dt,
                                   incub_params, serial_int_params,
                                   iso_delay_params, sec_infect_params,
-                                  import_params, social_dist_params){
+                                  import_params, phys_dist_params){
   sim_params <- list(
     R0=R0,                      # used to parameterize probability of infection
     infect_dur=infect_dur,      # typical infection duration
@@ -69,8 +69,8 @@ initialize_sim_params <- function(R0, infect_dur, vary_trace, p_trace,
     sec_infect_params=sec_infect_params,  # parameters to model secondary infections
     # Daily import hazards
     import_params=import_params,
-    # Social distancing parameters
-    social_dist_params=social_dist_params
+    # Physical distancing parameters
+    phys_dist_params=phys_dist_params
   )
   return(sim_params)
 }

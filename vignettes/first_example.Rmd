@@ -71,9 +71,8 @@ iso_delay_params <- list(
 ```
 Run `?draw_isolation_delay_period` for more information on the above choices.
 
-Social/physical distancing parameters:
+Physical (or social) distancing parameters:
 ```{r setup distancing}
-# Social / physical distancing parameters
 pd_params <- list(
   pd_pop_frac = 0.8, # 80% of population are distancing
   pd_contact_rate1 = 1.0, # initial fraction of contacts for distancing group 

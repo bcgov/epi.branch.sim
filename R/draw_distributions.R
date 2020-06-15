@@ -305,7 +305,7 @@ draw_infection_length <- function(n, sim_params){
   return(rep(sim_params$infect_dur,n))
 }
 
-#' Assign social distancing behaviour to new cases
+#' Assign physical distancing behaviour to new cases
 #'
 #' Distancing behaviour is defined as a number between 0 and 1, representing the
 #' relative number of contacts the subject encounters (i.e. 0.6 means the subject
@@ -326,7 +326,7 @@ draw_infection_length <- function(n, sim_params){
 #'
 #' @param n_cases     Number of cases required
 #' @param sim_params  \code{sim_params} object (a list) containing simulation parameters.
-#'                    Here, the sim_params$social_dist_params object contains the information
+#'                    Here, the sim_params$phys_dist_params object contains the information
 #'                    needed. This list should have the following entries:
 #'                    \itemize{
 #'                    \item \code{pd_pop_frac}: A number for the fraction of the general population
@@ -343,7 +343,7 @@ draw_infection_length <- function(n, sim_params){
 #' @param sim_status  \code{sim_status} object (a list) containing simulation state vector
 #' @return A vector of length n for the contact_rate (double)
 draw_contact_rate <- function(n_cases, sim_params, sim_status){
-  pd_params <- sim_params$social_dist_params
+  pd_params <- sim_params$phys_dist_params
   # Allows for a different contact rate for the PD group before and after a change time
   if (sim_status$t < pd_params$pd_change_t){
     pd_contact_rate <- pd_params$pd_contact_rate1  # rate before change time
@@ -419,7 +419,7 @@ draw_sec_infects_df <- function(state_df, sim_params, sim_status, import=FALSE){
     # number of sec. infections and serial interval of each sec. infection
     col_names <- c('n_infect', 'serial_int')
     n_cols <- length(col_names)
-    # Determine which social distancing group cases belong to
+    # Determine which physical distancing group cases belong to
     contact_rate <- state_df$contact_rate
     # Determine number of secondary infections drawn from neg. binomial
     mean_infect <- sim_params$R0 * contact_rate
