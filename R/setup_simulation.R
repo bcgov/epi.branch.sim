@@ -45,7 +45,7 @@
 #' @param phys_dist_params   Parameters to model physical (social) distancing or
 #'                           other interventions that reduce the potential to
 #'                           cause secondary infections.
-#'                           See \code{\link{draw_contract_rate}}
+#'                           See \code{\link{draw_contact_rate}}
 #' @return A list containing all of the above entries
 #' @export
 initialize_sim_params <- function(R0, infect_dur, vary_trace, p_trace,
@@ -115,7 +115,7 @@ initialize_sim_status <- function(start_time, initial_n_cases){
 #' The columns of this dataframe are: \code{case_id}, \code{status}, \code{is_traced},
 #' \code{is_trace_app_user}, \code{is_trace_app_comply}, \code{is_traced_by_app},
 #' \code{is_symptomatic}, \code{days_infected}, \code{incubation_length},
-#' \code{isolation_delay}, \code{infection_length}, \code{contract_rate},
+#' \code{isolation_delay}, \code{infection_length}, \code{contact_rate},
 #' \code{n_sec_infects}, and \code{serial_intervals}. The meaning of these columns
 #' will be documented elsewhere. Most of the columns are constant and are initialized
 #' in this function via calls to related functions in draw_distributions.R. All time lengths
@@ -153,7 +153,7 @@ create_state_df <- function(n_cases, sim_params, sim_status,
   # List of columns in state df
   col_names <- c("case_id", "status", "is_traced", "is_trace_app_user", "is_trace_app_comply",
                  "is_traced_by_app", "is_symptomatic", "days_infected", "incubation_length",
-                 "isolation_delay",  "infection_length", "contract_rate", "n_sec_infects",
+                 "isolation_delay",  "infection_length", "contact_rate", "n_sec_infects",
                  "serial_intervals") #
   n_cols <- length(col_names)
   # Create data frame
@@ -183,7 +183,7 @@ create_state_df <- function(n_cases, sim_params, sim_status,
     state_df$is_traced_by_app <- rep(FALSE, n_cases)
   }
   state_df$is_symptomatic <- draw_symptomatic_status(n_cases,sim_params)
-  state_df$contract_rate <- draw_contract_rate(n_cases, sim_params, sim_status)
+  state_df$contact_rate <- draw_contact_rate(n_cases, sim_params, sim_status)
   state_df$days_infected <- rep(0, n_cases)
   state_df$incubation_length <- draw_incubation_period(n_cases,sim_params)
   state_df$isolation_delay <- draw_isolation_delay_period(state_df,sim_params,
@@ -213,7 +213,7 @@ create_state_df <- function(n_cases, sim_params, sim_status,
 #' The columns of this dataframe are: \code{case_id}, \code{source}, \code{is_traced},
 #' \code{is_trace_app_user}, \code{is_traced_by_app}, \code{is_trace_app_comply},
 #' \code{is_symptomatic}, \code{d_incub}, \code{d_iso_delay}, \code{d_infection},
-#' \code{contract_rate}, \code{n_sec_infects}, \code{d_serial_ints}, \code{t_inf},
+#' \code{contact_rate}, \code{n_sec_infects}, \code{d_serial_ints}, \code{t_inf},
 #' \code{t_symp}, \code{t_iso}, \code{t_inact}, \code{cases_inf}, \code{s_status},
 #' and \code{non_infect_serials}. The meaning of these columns will be documented elsewhere.
 #' Columns \code{case_id} through \code{t_inf} as well as column
@@ -243,7 +243,7 @@ create_record_df <- function(state_df, sim_status, initialize=FALSE, infection_s
   # List of columns to record
   col_names <- c("case_id", "source", "is_traced", "is_trace_app_user", "is_traced_by_app",
                  "is_trace_app_comply", "is_symptomatic", "d_incub", "d_iso_delay",
-                 "d_infection", "contract_rate", "n_sec_infects", "d_serial_ints",
+                 "d_infection", "contact_rate", "n_sec_infects", "d_serial_ints",
                  "t_inf", "t_symp", "t_iso", "t_inact",
                  "cases_inf", "s_status", "non_infect_serials")
   n_cols <- length(col_names)
@@ -266,7 +266,7 @@ create_record_df <- function(state_df, sim_status, initialize=FALSE, infection_s
   rec_df$d_incub <- state_df$incubation_length
   rec_df$d_iso_delay <- state_df$isolation_delay
   rec_df$d_infection <- state_df$infection_length
-  rec_df$contract_rate <- state_df$contract_rate
+  rec_df$contact_rate <- state_df$contact_rate
   rec_df$n_sec_infects <- state_df$n_sec_infects
   rec_df$d_serial_ints <- state_df$serial_intervals
   #rec_df$sec_infects <- state_df$sec_infects
