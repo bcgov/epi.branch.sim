@@ -17,7 +17,7 @@ This list should have the following entries:
 \item \code{type}: Defines the algorithm to be used. Currently, only
 "Hellewell" is implemented. This uses a negative binomial distribution
 to draw the number of potential secondary infections with a mean equal
-to R0*sd_factor and a dispersion equal to the value set below. Serial
+to R0*contact_rate and a dispersion equal to the value set below. Serial
 intervals are drawn but only potential infections with serial intervals
 earlier than the primary case's time of isolation are kept.
 \item \code{disp}: The dispersion value for the negative binomial distribution

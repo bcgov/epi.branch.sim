@@ -41,7 +41,7 @@ The new \code{rec_df} object is merged with the main \code{rec_df} within
 The columns of this dataframe are: \code{case_id}, \code{source}, \code{is_traced},
 \code{is_trace_app_user}, \code{is_traced_by_app}, \code{is_trace_app_comply},
 \code{is_symptomatic}, \code{d_incub}, \code{d_iso_delay}, \code{d_infection},
-\code{sd_factor}, \code{n_sec_infects}, \code{d_serial_ints}, \code{t_inf},
+\code{contact_rate}, \code{n_sec_infects}, \code{d_serial_ints}, \code{t_inf},
 \code{t_symp}, \code{t_iso}, \code{t_inact}, \code{cases_inf}, \code{s_status},
 and \code{non_infect_serials}. The meaning of these columns will be documented elsewhere.
 Columns \code{case_id} through \code{t_inf} as well as column

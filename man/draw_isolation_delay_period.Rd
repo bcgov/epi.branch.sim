@@ -25,8 +25,8 @@ each type of case. Min/Max values to be provided are:
 \item \code{iso_delay_traced_[min|max]}: Range for manually traced cases
 \item \code{iso_delay_untraced_[min|max]}: Range for untraced cases from the
 non-distancing population.
-\item \code{iso_delay_untraced_sd_[min|max]}: Rnage for untraced cases from
-the distancing population (any case with sd_factor less than 1).
+\item \code{iso_delay_untraced_pd_[min|max]}: Rnage for untraced cases from
+the distancing population (any case with contact_rate less than 1).
 }
 Cases traced by the app (require both index and secondary cases to be app users
 \emph{and} for the secondary case to be app-compliant) have a zero day delay.

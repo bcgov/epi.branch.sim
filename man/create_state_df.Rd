@@ -54,7 +54,7 @@ The new \code{state_df} object is merged with the main \code{state_df} within
 The columns of this dataframe are: \code{case_id}, \code{status}, \code{is_traced},
 \code{is_trace_app_user}, \code{is_trace_app_comply}, \code{is_traced_by_app},
 \code{is_symptomatic}, \code{days_infected}, \code{incubation_length},
-\code{isolation_delay}, \code{infection_length}, \code{sd_factor},
+\code{isolation_delay}, \code{infection_length}, \code{contact_rate},
 \code{n_sec_infects}, and \code{serial_intervals}. The meaning of these columns
 will be documented elsewhere. Most of the columns are constant and are initialized
 in this function via calls to related functions in draw_distributions.R. All time lengths

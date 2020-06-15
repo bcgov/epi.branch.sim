@@ -18,7 +18,7 @@ initialize_sim_params(
   iso_delay_params,
   sec_infect_params,
   import_params,
-  social_dist_params
+  phys_dist_params
 )
 }
 \arguments{
@@ -60,10 +60,10 @@ See \code{\link{draw_sec_infects_df}}}
 \item{import_params}{Parameters to model imported infections.
 See \code{\link{generate_imported_infections}}}
 
-\item{social_dist_params}{Parameters to model social/physical distancing or
+\item{phys_dist_params}{Parameters to model physical (social) distancing or
 other interventions that reduce the potential to
 cause secondary infections.
-See \code{\link{draw_sd_factor}}}
+See \code{\link{draw_contact_rate}}}
 }
 \value{
 A list containing all of the above entries
