@@ -171,9 +171,9 @@ run_scenarios <- function(scenario_params, outdir='.',
   do_variable_trace <- scenario_params$do_variable_trace
   contact_rates_str <- scenario_params$contact_rates
   contact_rates <- eval(parse(text=contact_rates_str))
-  sd_p_group_str <- scenario_params$sd_p_group
-  sd_p_group <- eval(parse(text=sd_p_group_str))
-  sd_delay <- scenario_params$sd_delay
+  pd_p_group_str <- scenario_params$pd_p_group
+  pd_p_group <- eval(parse(text=pd_p_group_str))
+  pd_delay <- scenario_params$pd_delay
   R0 <- scenario_params$R0
   p_trace <- scenario_params$p_trace
   p_symp <- scenario_params$p_symp
@@ -192,7 +192,7 @@ run_scenarios <- function(scenario_params, outdir='.',
     else{
       import_params <- get_import_params(file.path('data',paste0(import_model,'.csv')))
     }
-    social_dist_params <- list(contact_rates=contact_rates, p_group=sd_p_group, delay=sd_delay)
+    social_dist_params <- list(contact_rates=contact_rates, p_group=pd_p_group, delay=pd_delay)
     sim_params <- initialize_sim_params(R0, infect_dur, do_variable_trace, p_trace,
                                         p_symp, dt,
                                         incub_params, serial_int_params,

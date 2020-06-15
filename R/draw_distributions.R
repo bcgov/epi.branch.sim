@@ -79,7 +79,7 @@ draw_symptomatic_status <- function(n, sim_params){
 #'                       \item \code{iso_delay_traced_[min|max]}: Range for manually traced cases
 #'                       \item \code{iso_delay_untraced_[min|max]}: Range for untraced cases from the
 #'                       non-distancing population.
-#'                       \item \code{iso_delay_untraced_sd_[min|max]}: Rnage for untraced cases from
+#'                       \item \code{iso_delay_untraced_pd_[min|max]}: Rnage for untraced cases from
 #'                       the distancing population (any case with contact_rate less than 1).
 #'                       }
 #'                    Cases traced by the app (require both index and secondary cases to be app users
@@ -149,7 +149,7 @@ draw_isolation_delay_period <- function(state_df, sim_params,
         } else{ # If not traced, then only update value if case is also distancing
           if (state_df[ii,]$contact_rate < 1){ # the case is distancing
             return(
-              runif(1,min = iso_delay_params$untraced_sd_min,max = iso_delay_params$untraced_sd_max)
+              runif(1,min = iso_delay_params$untraced_pd_min,max = iso_delay_params$untraced_pd_max)
             )
           } # not distancing, return original value without modification
           return(iso_delay[ii]) # NB: return is to vapply
@@ -329,43 +329,43 @@ draw_infection_length <- function(n, sim_params){
 #'                    Here, the sim_params$social_dist_params object contains the information
 #'                    needed. This list should have the following entries:
 #'                    \itemize{
-#'                    \item \code{sd_pop_frac}: A number for the fraction of the general population
+#'                    \item \code{pd_pop_frac}: A number for the fraction of the general population
 #'                    that is practicing distancing. Set this to 0 or 1 to have everyone act the same.
-#'                    \item \code{sd_contact_rate1}: The contact rate of the distancing population before
-#'                    time \code{sd_change_t}. Set this to 1 to have the distancing population not begin
+#'                    \item \code{pd_contact_rate1}: The contact rate of the distancing population before
+#'                    time \code{pd_change_t}. Set this to 1 to have the distancing population not begin
 #'                    distancing until a later time.
-#'                    \item \code{sd_contact_rate2}: The contact rate of the distancing population after
-#'                    time \code{sd_change_t}. Set this to 1 to have the distancing population stop
+#'                    \item \code{pd_contact_rate2}: The contact rate of the distancing population after
+#'                    time \code{pd_change_t}. Set this to 1 to have the distancing population stop
 #'                    distancing at a certain time.
-#'                    \item \code{sd_change_t}: The simulation time where the distancing population's
+#'                    \item \code{pd_change_t}: The simulation time where the distancing population's
 #'                    contact rate changes. Set this to 0 or a very high number to have only one rate.
 #'                    }
 #' @param sim_status  \code{sim_status} object (a list) containing simulation state vector
 #' @return A vector of length n for the contact_rate (double)
 draw_contact_rate <- function(n_cases, sim_params, sim_status){
-  sd_params <- sim_params$social_dist_params
-  # Allows for a different contact rate for the SD group before and after a change time
-  if (sim_status$t < sd_params$sd_change_t){
-    sd_contact_rate <- sd_params$sd_contact_rate1  # rate before change time
+  pd_params <- sim_params$social_dist_params
+  # Allows for a different contact rate for the PD group before and after a change time
+  if (sim_status$t < pd_params$pd_change_t){
+    pd_contact_rate <- pd_params$pd_contact_rate1  # rate before change time
   } else {
-    sd_contact_rate <- sd_params$sd_contact_rate2  # rate after change time
+    pd_contact_rate <- pd_params$pd_contact_rate2  # rate after change time
   }
 
   # One population only:
-  if (sd_params$sd_pop_frac==1){ # Everyone is (or is not) distancing (i.e. just one population)
-    contact_rate<-rep(sd_contact_rate, n_cases)
+  if (pd_params$pd_pop_frac==1){ # Everyone is (or is not) distancing (i.e. just one population)
+    contact_rate<-rep(pd_contact_rate, n_cases)
   }
   else{
     # For two groups, need to factor in how the groups encounter each other in order
     # to properly assign probabilities of **infecting** someone in a given group
     # Ratio of distancer to non-distancer: epsilon*lambda/(1-epsilon)
     # epsilion = fraction of distancing pop, lambda = contact rate of distancing pop.
-    eps <- sd_params$sd_pop_frac
-    lambda <- sd_contact_rate
-    prob_sd <- eps*lambda / (eps*lambda + 1-eps)
+    eps <- pd_params$pd_pop_frac
+    lambda <- pd_contact_rate
+    prob_pd <- eps*lambda / (eps*lambda + 1-eps)
     contact_rate <- sample(x = c(lambda, 1.0),
                         size = n_cases,
-                        prob = c(prob_sd, 1-prob_sd),
+                        prob = c(prob_pd, 1-prob_pd),
                         replace=TRUE)
   }
   return(contact_rate)

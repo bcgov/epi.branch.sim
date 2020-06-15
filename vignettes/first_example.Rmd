@@ -65,8 +65,8 @@ iso_delay_params <- list(
   traced_max = 3,
   untraced_min = 4, # untraced secondary cases isolated 4-5 days after *symptom onset*
   untraced_max = 5,
-  untraced_sd_min = 2, # untraced secondary cases which are distancing isolated earlier
-  untraced_sd_max = 3
+  untraced_pd_min = 2, # untraced secondary cases which are distancing isolated earlier
+  untraced_pd_max = 3
 )
 ```
 Run `?draw_isolation_delay_period` for more information on the above choices.
@@ -74,11 +74,11 @@ Run `?draw_isolation_delay_period` for more information on the above choices.
 Social/physical distancing parameters:
 ```{r setup distancing}
 # Social / physical distancing parameters
-sd_params <- list(
-  sd_pop_frac = 0.8, # 80% of population are distancing
-  sd_contact_rate1 = 1.0, # initial fraction of contacts for distancing group 
-  sd_contact_rate2 = 0.3, # final fraction of contacts for distancing group 
-  sd_change_t = 7 # simulation day number where the contact rate changes
+pd_params <- list(
+  pd_pop_frac = 0.8, # 80% of population are distancing
+  pd_contact_rate1 = 1.0, # initial fraction of contacts for distancing group 
+  pd_contact_rate2 = 0.3, # final fraction of contacts for distancing group 
+  pd_change_t = 7 # simulation day number where the contact rate changes
 )
 ```
 Run `?draw_contact_rate` for more information on the above choices. All contact rates are given with respect to the non-distancing group, which has a contact rate of 1.
@@ -109,7 +109,7 @@ sim_params <- initialize_sim_params(
   p_trace_app, p_trace_app_comp, p_symp, dt,
   incub_params, serial_int_params,
   iso_delay_params, sec_infect_params,
-  import_params, sd_params)
+  import_params, pd_params)
 sim_status <- initialize_sim_status(start_time,n_initial) 
 state_df   <- create_state_df(n_initial,sim_params, sim_status, initialize=TRUE)
 record_df  <- create_record_df(state_df, sim_status, initialize=TRUE)
