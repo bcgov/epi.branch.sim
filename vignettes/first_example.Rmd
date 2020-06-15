@@ -81,7 +81,7 @@ sd_params <- list(
   sd_change_t = 7 # simulation day number where the contact rate changes
 )
 ```
-Run `?draw_sd_factor` for more information on the above choices. All contact rates are given with respect to the non-distancing group, which has a contact rate of 1.
+Run `?draw_contact_rate` for more information on the above choices. All contact rates are given with respect to the non-distancing group, which has a contact rate of 1.
 
 ### Define simulation control parameters (including imports)
 
@@ -127,7 +127,7 @@ Let's now take a look at the first few rows of the `state_df` object to get a se
 ```{r peek state_df}
 head(state_df)
 ```
-Note that all initial cases are considered to be untraced. At the start of the simulation, the `sd_factor` for all cases is 1 because the distancing measures are delayed until day 7. Note that all times in `state_df` are measured in a relative sense: most times are measured from the start of infection, except for `isolation_delay`, which is measured from the symptom onset (`incubation_length`). The `serial_intervals` column stores the times where the case would cause a secondary infection. Here, we see that case 1 will cause an infection at time 0.73, i.e. by the next time-step. The column `non_infect_serials` lists potential secondary infections that were prevented due to that case's isolation. See `create_state_df` for more information on these columns.
+Note that all initial cases are considered to be untraced. At the start of the simulation, the `contact_rate` for all cases is 1 because the distancing measures are delayed until day 7. Note that all times in `state_df` are measured in a relative sense: most times are measured from the start of infection, except for `isolation_delay`, which is measured from the symptom onset (`incubation_length`). The `serial_intervals` column stores the times where the case would cause a secondary infection. Here, we see that case 1 will cause an infection at time 0.73, i.e. by the next time-step. The column `non_infect_serials` lists potential secondary infections that were prevented due to that case's isolation. See `create_state_df` for more information on these columns.
 
 Now we can take a peek at `record_df`.
 ```{r peek record_df}
@@ -199,7 +199,7 @@ Now let's look at the last few lines of `state_df`.
 ```{r check tail state_df}
 tail(state_df, n=5)
 ```
-These are the most recent five cases ending with Case #301. The negative value of `isolation_delay` in Case #300 indicates that this case will be isolated before the end of its incubation period. This happens because Case #300 is traced by the app which causes traced cases to be isolated as soon as the index case is isolated, leading to quick isolations. The value of 0.3 in the `sd_factor` column in three of the last five cases indicates that these cases are physically distancing and only have 0.3 times as many contacts as they normally would. 
+These are the most recent five cases ending with Case #301. The negative value of `isolation_delay` in Case #300 indicates that this case will be isolated before the end of its incubation period. This happens because Case #300 is traced by the app which causes traced cases to be isolated as soon as the index case is isolated, leading to quick isolations. The value of 0.3 in the `contact_rate` column in three of the last five cases indicates that these cases are physically distancing and only have 0.3 times as many contacts as they normally would. 
 
 We can also examine the first five lines of `record_df`.
 ```{r check head record_df}

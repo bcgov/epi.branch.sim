@@ -80,7 +80,7 @@ draw_symptomatic_status <- function(n, sim_params){
 #'                       \item \code{iso_delay_untraced_[min|max]}: Range for untraced cases from the
 #'                       non-distancing population.
 #'                       \item \code{iso_delay_untraced_sd_[min|max]}: Rnage for untraced cases from
-#'                       the distancing population (any case with sd_factor less than 1).
+#'                       the distancing population (any case with contact_rate less than 1).
 #'                       }
 #'                    Cases traced by the app (require both index and secondary cases to be app users
 #'                    *and* for the secondary case to be app-compliant) have a zero day delay.
@@ -147,7 +147,7 @@ draw_isolation_delay_period <- function(state_df, sim_params,
           # anyhow, so it should just be treated as untraced and isolated at that point)
           return( min(modified_delay, iso_delay[ii]) ) # NB: return is to vapply
         } else{ # If not traced, then only update value if case is also distancing
-          if (state_df[ii,]$sd_factor < 1){ # the case is distancing
+          if (state_df[ii,]$contact_rate < 1){ # the case is distancing
             return(
               runif(1,min = iso_delay_params$untraced_sd_min,max = iso_delay_params$untraced_sd_max)
             )
@@ -341,8 +341,8 @@ draw_infection_length <- function(n, sim_params){
 #'                    contact rate changes. Set this to 0 or a very high number to have only one rate.
 #'                    }
 #' @param sim_status  \code{sim_status} object (a list) containing simulation state vector
-#' @return A vector of length n for the sd_factor (double)
-draw_sd_factor <- function(n_cases, sim_params, sim_status){
+#' @return A vector of length n for the contact_rate (double)
+draw_contact_rate <- function(n_cases, sim_params, sim_status){
   sd_params <- sim_params$social_dist_params
   # Allows for a different contact rate for the SD group before and after a change time
   if (sim_status$t < sd_params$sd_change_t){
@@ -353,7 +353,7 @@ draw_sd_factor <- function(n_cases, sim_params, sim_status){
 
   # One population only:
   if (sd_params$sd_pop_frac==1){ # Everyone is (or is not) distancing (i.e. just one population)
-    sd_factor<-rep(sd_contact_rate, n_cases)
+    contact_rate<-rep(sd_contact_rate, n_cases)
   }
   else{
     # For two groups, need to factor in how the groups encounter each other in order
@@ -363,12 +363,12 @@ draw_sd_factor <- function(n_cases, sim_params, sim_status){
     eps <- sd_params$sd_pop_frac
     lambda <- sd_contact_rate
     prob_sd <- eps*lambda / (eps*lambda + 1-eps)
-    sd_factor <- sample(x = c(lambda, 1.0),
+    contact_rate <- sample(x = c(lambda, 1.0),
                         size = n_cases,
                         prob = c(prob_sd, 1-prob_sd),
                         replace=TRUE)
   }
-  return(sd_factor)
+  return(contact_rate)
 }
 
 #' Stage secondary infections when new cases are generated
@@ -393,7 +393,7 @@ draw_sd_factor <- function(n_cases, sim_params, sim_status){
 #'                    \item \code{type}: Defines the algorithm to be used. Currently, only
 #'                    "Hellewell" is implemented. This uses a negative binomial distribution
 #'                    to draw the number of potential secondary infections with a mean equal
-#'                    to R0*sd_factor and a dispersion equal to the value set below. Serial
+#'                    to R0*contact_rate and a dispersion equal to the value set below. Serial
 #'                    intervals are drawn but only potential infections with serial intervals
 #'                    earlier than the primary case's time of isolation are kept.
 #'                    \item \code{disp}: The dispersion value for the negative binomial distribution
@@ -420,9 +420,9 @@ draw_sec_infects_df <- function(state_df, sim_params, sim_status, import=FALSE){
     col_names <- c('n_infect', 'serial_int')
     n_cols <- length(col_names)
     # Determine which social distancing group cases belong to
-    sd_factor <- state_df$sd_factor
+    contact_rate <- state_df$contact_rate
     # Determine number of secondary infections drawn from neg. binomial
-    mean_infect <- sim_params$R0 * sd_factor
+    mean_infect <- sim_params$R0 * contact_rate
     disp_infect <- sim_params$sec_infect_params$disp
     n_infect <- rnbinom(n_cases, mu=mean_infect, size=disp_infect)
     # Determine serial interval of each secondary infection for each infector source case
