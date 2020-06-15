@@ -14,7 +14,7 @@ Authors@R:
              role = "ctb"),
       person(given = "Ioana",
              family = "Sevcenco",
-             role = "ctb")
+             role = "ctb"),
       person(given = "Province of British Columbia",
              role = "cph"))
 Description: Simulates an epidemic outbreak with a branching process from a number of 
