@@ -85,17 +85,17 @@ initialize_sim_params <- function(R0, infect_dur, vary_trace, p_trace,
 #' object at the beginning of the simulation and only needs to be called once.
 #'
 #' @param start_time      The start time (in days) for the simulation
-#' @param initial_n_cases The number of cases at the start of the simulation.
+#' @param start_n_cases   The number of cases at the start of the simulation.
 #' @return A list containing the simulation state vector quantities, which includes:
 #' \itemize{
 #'  \item \code{t} Current time (days)
 #'  \item \code{last_case_id} The last case_id generated (integer)
 #' }
 #' @export
-initialize_sim_status <- function(start_time, initial_n_cases){
+initialize_sim_status <- function(start_time, start_n_cases){
   sim_status <- list(
     t=start_time,
-    last_case_id=initial_n_cases
+    last_case_id=start_n_cases
   )
   return(sim_status)
 }

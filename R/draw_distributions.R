@@ -431,7 +431,7 @@ draw_sec_infects_df <- function(state_df, sim_params, sim_status, import=FALSE){
                            n_infect, # X to loop over
                            MoreArgs=list(sim_params=sim_params), # additional required input for FUN
                            SIMPLIFY = FALSE) # force return as list
-    } else if (sim_params$serial_int_params$dist=='skewed_norm'){
+    } else if (sim_params$serial_int_params$dist=='skew_norm'){
       serial_int <- mapply(draw_serial_interval, # FUN to be called on each X1, X2
                            n_infect,             # X1 to loop over
                            state_df$incubation_length, #X2 to loop over
@@ -509,13 +509,12 @@ draw_sec_infects_df <- function(state_df, sim_params, sim_status, import=FALSE){
 #' distribution defined in \code{sim_params$serial_int_params}
 #'
 #' @param n                   Number of potential secondary infections for this case
-#' @param incubation_length   Incubation period of this case (used in skewed normal distribution only)
+#' @param incubation_length   Incubation period of this case (used in skew normal distribution only)
 #' @param sim_params  \code{sim_params} object (a list) containing simulation parameters, where
 #'                    all of the information needed to describe the distribution is found within
 #'                    \code{sim_params$serial_int_params}. Current distributions possible are:
 #'                    \itemize{
-#'                    \item \code{dummy}: Uniform number between 1 and 5 (used for testing only)
-#'                    \item \code{skewed_norm}: Drawn from skewed normal distribution with xi set
+#'                    \item \code{skew_norm}: Drawn from skew normal distribution with xi set
 #'                    to the case's incubation period, and attributes "omega" and "alpha" given
 #'                    in \code{sim_params$serial_int_params}. This is what Hellewell uses.
 #'                    \item \code{gamma}: Drawn from a gamma distribution with attributes
@@ -523,9 +522,7 @@ draw_sec_infects_df <- function(state_df, sim_params, sim_status, import=FALSE){
 #'                    }
 #' @return A vector of length n for serial intervals of the case's potential secondary infections
 draw_serial_interval <- function(n, incubation_length, sim_params){
-  if (sim_params$iso_delay_params$dist=='dummy'){
-    return(runif(n,min=1,max=5))
-  } else if (sim_params$serial_int_params$dist=='skewed_norm'){
+  if (sim_params$serial_int_params$dist=='skew_norm'){
     sn_xi = incubation_length # case incubation period
     sn_omega = sim_params$serial_int_params$omega
     sn_alpha = sim_params$serial_int_params$alpha

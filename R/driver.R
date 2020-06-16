@@ -74,11 +74,11 @@ run_scenario_Hellewell <- function(nsims,p_trace,R0,
 
     # Set up serial intervals to one of three levels used by Hellewell et al.
     if (infections_before_symptoms == 'low'){ # <1% infections before symptom onset
-      serial_int_params <- list(dist='skewed_norm', omega=2, alpha=30)
+      serial_int_params <- list(dist='skew_norm', omega=2, alpha=30)
     } else if (infections_before_symptoms == 'medium'){ # 15% infections before symptom onset
-      serial_int_params <- list(dist='skewed_norm', omega=2, alpha=1.95) # DEFAULT BENCHMARK
+      serial_int_params <- list(dist='skew_norm', omega=2, alpha=1.95) # DEFAULT BENCHMARK
     } else if (infections_before_symptoms == 'high'){ # 30% infections before symptoms
-      serial_int_params <- list(dist='skewed_norm', omega=2, alpha=0.7)
+      serial_int_params <- list(dist='skew_norm', omega=2, alpha=0.7)
     } else {
       stop('Invalid value for argument "infections_before_symptoms".')
     }
