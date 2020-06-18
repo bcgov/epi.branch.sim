@@ -98,7 +98,7 @@ run_scenario_Hellewell <- function(nsims,p_trace,R0,
     # Turn off / disable features not used by Hellewell's work
     infect_dur <- 999 # Hellewell et al. doesn't deactivate cases so we won't either
     dt <- 1 # Advance one day at a time
-    import_params <- 'None'
+    import_params <- list(type='None')
     phys_dist_params <- list(contact_rates=c(1),p_group=c(1),delay=0)
     do_variable_trace<-FALSE
 
