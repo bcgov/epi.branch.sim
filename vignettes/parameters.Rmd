@@ -1,0 +1,391 @@
+---
+title: "epi.branch.sim: Description of parameters"
+author: "Henry Ngo"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{epi.branch.sim description of parameters}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+This vignette provides detailed descriptions and options for all simulation parameters. It is recommended to first read the [introductory vignette](introduction.html) to get an overivew of the simulation algorithm. 
+
+First, we load the library so that the example codes will run.
+```{r setup}
+library(epi.branch.sim)
+```
+
+## Description of input parameters
+All simulation parameters are stored in the `sim_status` and `sim_params` objects. We create these two objects at the start of every simulation with the `initialize_sim_status()` and `initialize_sim_params()` functions in this package. This document describes how to set simulation parameters by using the arguments to these functions.
+
+The arguments to `initialize_sim_status` are:
+```{r sim_status_arguments}
+names(formals(initialize_sim_status))
+```
+These cover the initial conditions for the simulation. As the simulation moves forward, the `sim_status` object is updated to store the current time and the total number of cases up to the current time.
+
+The rest of the simulation parameters are stored in the `sim_params` object. The arguments to `initialize_sim_params` are:
+```{r sim_params_arguments}
+names(formals(initialize_sim_params))
+```
+These arguments cover the disease parameters, contact tracing paramers, intervention parameters and whether there are imported cases. The contents of `sim_params` are set at the beginning by this function and do not change during a simulation. 
+
+The following subsections describe the possible choices for all of these parameters by category, which may not be the same order as they are defined in the function definition. In each category, tables describe the arguments and the valid values. Some of these parameters are numerical while others are a distribution or process with options described by a list. When options are described by a list, usually the list has a member called `dist` or `type` that describes the distribution or algorithm to be used and then additional named members that may vary based on the choice for `dist` or `type`. 
+
+Please note that while valid values are provided here, the inputs are not checked for validity. The simulation may still run to completion when invalid values are provided, however, the output may be invalid.
+
+### Initial conditions: starting time and number of cases
+The simulation's initial conditions are the start time and the initial number of cases. They are both stored in the `sim_status` object. Here are the only two arguments for `initialize_sim_status`:
+
+| Argument name  | Valid values         | Description  |
+| :------------- | :------------------- | :----------- |
+| `start_time`   | Integer              | In days. Typically should be 0, but could be used to set a different relative start times for different sets of simulations. |
+| `start_n_cases`| Integer $\geq$ 0 | Number of cases at `start_time`. Zero is acceptable if expecting initial cases to be imported. |
+
+### Disease parameters (numerical): R0, infection duration, and p_symp
+
+The following arguments to `initialize_sim_params` cover these numerical disease parameters.
+
+| Argument name  | Valid values         | Description |
+| :------------- | :------------------- | :---------- |
+| `R0`           | Double $\ge$ 0       | Dimensionless. Represents the basic [reproduction number](https://web.stanford.edu/~jhj1/teachingdocs/Jones-on-R0.pdf) $R_0$, the expected number of secondary cases produced by each index case. |
+| `infect_dur`   | Double $\geq$ 0      | In days. The total length of time a case is considered to be active and infectious, in the absence of any isolation protocols. Cases are considered "inactive" after being infected for this length of time. To avoid the use of the "inactive" state, set this value to be larger than the simulation's end time. |
+| `p_symp`       | Double, 0 $\leq$ p $\leq$ 1  | Fraction of cases that are symptomatic. |
+
+### Disease parameters (distributions): incubation period and serial intervals
+
+#### Incubation period
+In this simulation, every case, whether symptomatic or not, has a value drawn for its incubation period. The incubation period distribution is provided as the `incub_params` argument, which expects a named list. The list member `$dist` sets the probability distribution function to use. Valid values for `dist` are `lognormal` and `weibull`. Each of these choices take shape and scale parameters from additional list members with names that match shape and scale argument names of the corresponding R function that generates random numbers from the given distribution. The parameters should be given so that the distribution function generates random incubation period values in days.
+
+| Incubation period distribution | List members required | Description |
+| :----------------------------- | :-------------------- | :---------- |
+| Log-normal                     | `$dist='lognormal'`   | Uses `rlnorm` to draw numbers |
+|                                | `$meanlog`            | Double. Log of distribution mean (in days). |
+|                                | `$sdlog`              | Double $\geq$ 0. Log of standard deivation (in days). |
+| Weibull                        | `$dist='weibull'`     | Uses `rweibull` to draw numbers |
+|                                | `$shape`              | Double $\ge$ 0. Shape parameter of Weibull distribution. |
+|                                | `$scale`              | Double $\ge$ 0. Scale parameter of Weibull distribution. |
+
+**Note**: At this time, only the above directly coded distributions are available in this package. A future item is to generalize to allow distributions available in R or otherwise user-defined.
+
+##### Examples
+The incubation period distribution from [Bi et al. (2020)](https://www.medrxiv.org/content/10.1101/2020.03.03.20028423v3):
+```{r incub_example_bi}
+incub_params <- list(
+  dist='lognormal',
+  meanlog=1.57,
+  sdlog=0.65
+) 
+```
+
+The incubation period distribution from [Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7):
+```{r incub_example_hellewell}
+incub_params <- list(
+  dist='weibull', 
+  shape=2.322737, 
+  scale=6.492272
+)
+```
+
+#### Serial intervals
+In this simulation, the serial interval is defined to be the number of days between start of infection of the index case to the start of infection of a potential secondary case. The serial interval distribution is provided as the `serial_int_params` argument, which expects a named list. The list member `$dist` sets the probability distribution function to use. Valid values for `dist` are `skew_norm` and `gamma`. Each of these choices take shape and scale parameters from additional list members with names that match shape and scale argument names of the corresponding R function that generates random numbers from the given distribution. The parameters should be given so that the distribution function generates random serial interval values in days.
+
+| Serial interval distribution | List members required | Description |
+| :--------------------------- | :-------------------- | :---------- |
+| Skew normal                  | `$dist='skew_norm'`   | Uses `sn::rsn` to draw numbers. The `xi` location parameter is equal to the incubation period. This distribution is used to parameterize how often serial intervals are shorter than the incubation period (i.e. pre-symptomatic transmission). |
+|                              | `$omega`              | Double $\geq$ 0. Scale parameter, same as for a normal distribution. |
+|                              | `$alpha`              | Double. Parameterizes the skewness of the distribution. Positive values result in a right-skewed distribution, while negative values result in a left-skewed distribution. A value of zero has no skew. |
+| Gamma                        | `$dist='gamma'`       | Uses `rgamma` to draw numbers |
+|                              | `$shape`              | Double $\ge$ 0. Shape parameter. |
+|                              | `$rate`               | Double $\ge$ 0. Parameter equal to 1/scale. |
+
+**Note**: At this time, only the above directly coded distributions are available in this package. A future item is to generalize to allow distributions available in R or otherwise user-defined.
+
+##### Examples
+The serial interval distribution from [Bi et al. (2020)](https://www.medrxiv.org/content/10.1101/2020.03.03.20028423v3):
+```{r serial_int_example_bi}
+serial_int_params <- list(
+  dist='gamma', 
+  shape=2.29, 
+  rate=0.36
+)
+```
+
+The benchmark serial interval distribution from [Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7), where 15% of serial intervals are shorter than the incubation period:
+```{r serial_int_example_hellewell}
+serial_int_params <- list(
+  dist='skew_norm', 
+  omega=2, 
+  alpha=1.95
+)
+```
+
+### Secondary infection generation
+Options for the secondary infection generation algorithm is provided as the `sec_infect_params` argument, which expects a named list. The list member `$type` sets the algorithm type. Currently, only one algorithm is implemented, so `$type` must be `"Hellewell"`, described below.
+
+| Secondary infection algorithms | List members required | Description |
+| :----------------------------- | :-------------------- | :---------- |
+| Hellewell-like                 | `$type='Hellewell'`   | The only option currently avaialble. Draws from a negative binomial distribution to determine the number of potential secondary infections. |
+|                                | `$disp`               | Double $\ge$ 0. The disperision parameter to the negative binomial distribution used to determine the number of potential secondary infections.  |
+
+The only algorithm implemented in the package is the same as in [Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7). Secondary infections for each index case are determined at the time of generation of the index case and follow these steps:
+
+1. The number of potential secondary infections is drawn from a negative binomial distribution with mean set to `R0 * contact_rate` and dispersion parameter as provided in `sec_infect_params$disp`. 
+    + The `contact_rate` depends on whether the index case is reducing their contacts through physical distancing, and is typically a number between 0 and 1. See the next section for more details. 
+    + The `contact_rate` is a fixed value for the index case, determined when the index case is generated. If the overall population changes their distancing behaviour afterwards, existing cases do not change their `contact_rate`.
+
+2. Serial intervals are drawn for each potential secondary infection from the serial interval distribution.
+
+3. Serial intervals that fall outside the time frame where the index case could infect others are prevented from happening.
+    + If the index case is an imported case, it may be following self-quarantine guidelines so serial intervals shorter than the length of this quarantine period are prevented from becoming secondary infections.
+    + If the index case is eventually isolated, serial intervals that happen after isolation time are prevented from becoming secondary infections.
+    + Serial intervals that happen after the length of infection (`infect_dur`) are also prevented from becoming secondary infections.
+  
+4. The secondary infections are not immediately added to the simulation. Instead, they are queued up in the state vector and are added at the corresponding time-step.
+
+#### Examples
+The dispersion value used in [Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7), where they modelled the disease spread as "SARS-like":
+```{r sec_infect_Hellewell}
+sec_infect_params <- list(
+  type='Hellewell',
+  disp=0.16
+)
+```
+
+The dispersion value from [Bi et al. (2020)](https://www.medrxiv.org/content/10.1101/2020.03.03.20028423v3):
+```{r sec_infect_Bi}
+sec_infect_params <- list(
+  type='Hellewell',
+  disp=0.58
+)
+```
+
+### Physical distancing
+Physical distancing is implemented as a reduction in the number of contacts for cases that are practicing distancing. This is parameterized as the `contact_rate` attribute for the case, where a value of 1 means the case is not distancing at all and a value of 0 means the case is completely isolated and never has any contact that could lead to infection. 
+
+A case with a `contact_rate` less than 1 is practicing some distancing, which has the following effects:
+
+  * The potential number of secondary infections is drawn from a negative binomial distribution with a mean value of `R0 * contact_rate`
+  
+  * The delay from symptom onset to isolation for untraced cases that are practicing distancing can be set to a different value/distribution than the delay for untraced cases that are not practicing distancing (see next section)
+  
+In this simulation, the population can be divided into two groups: one that is practicing distancing and one that is not. Let $\epsilon$ be the fraction of the population that is distancing and let $\lambda$ be the `contact_rate` for the distancing population ($0 \leq \epsilon \leq 1$ and $0 \leq \lambda \leq 1$). While $\epsilon$ is the fraction of the population that are distancing, it is not the fraction of new infections that are distancing because the non-distancing population are having more contacts and therefore more likely to be infected. Therefore, when a new case is generated, the probability that it will be assigned to the distancing group is given as:
+$$
+p_{\mathrm{distancing}} = \frac{\epsilon\lambda}{\epsilon\lambda + (1-\epsilon)}
+$$
+Options for physical distancing is provided as the `phys_dist_params` argument, which expects a named list with members described in the following table:
+
+| `phys_dist_params` list member | Valid values                     | Description |
+| :----------------------------- | :------------------------------- | :---------- |
+| `$pd_pop_frac`                 | Double, $0 \leq \epsilon \leq 1$ | Fraction of population that will be practicing distancing |
+| `$pd_contact_rate1`            | Double, $0 \leq \lambda \leq 1$  | Initial `contact_rate` of the distancing population |
+| `$pd_contact_rate2`            | Double, $0 \leq \lambda \leq 1$  | Final `contact_rate` of the distancing population |
+| `$pd_change_t`                 | Double                           | Simulation time (in days) where the `contact_rate` of new cases in the distancing population switches from `contact_rate1` to `contract_rate2`. 
+
+Currently, the package only supports one change in the `contact_rate`.
+
+#### Examples
+We can set up distancing to take effect some time after the simulation starts. Here, distancing begins 14 days after the simulation starts and results in 80% of the population reducing contacts to 30% of their original values. The remaining 20% of the population do not do any distancing.
+```{r phys_dist_ex_switchon7}
+phys_dist_params <- list(
+  pd_pop_frac=0.8,
+  pd_contact_rate1=1.0,
+  pd_contact_rate2=0.3,
+  pd_change_t=14
+)
+```
+
+We can also model relaxation of measures by increasing the contact rate after some time. Here, the distancing population increases their contacts from 30% to 60% after 30 days of simulation time.
+```{r phys_dist_ex_reopen}
+phys_dist_params <- list(
+  pd_pop_frac=0.8,
+  pd_contact_rate1=0.3,
+  pd_contact_rate2=0.6,
+  pd_change_t=30
+)
+```
+
+It is not necessary to have a change in the contact rate. To run a simulation with a constant distancing setting, we can set the two contact rates to be equal or choose a change time less than the start time or greater than the expected end time. This example has 80% of the population reducing contacts to 30% of normal for the entire simulation.
+```{r phys_dist_ex_constant}
+phys_dist_params <- list(
+  pd_pop_frac=0.8,
+  pd_contact_rate1=0.3,
+  pd_contact_rate2=0.3,
+  pd_change_t=0 # or a number larger than the simulation end time, e.g. 999
+)
+```
+
+We can also run a simualtion without any distancing:
+```{r phys_dist_ex_no_PD}
+phys_dist_params <- list(
+  pd_pop_frac=0,
+  pd_contact_rate1=1.0,
+  pd_contact_rate2=1.0,
+  pd_change_t=0
+)
+```
+The important value here is `pd_pop_frac=0` in order to eliminate all effects of distancing, including different isolation timelines for distancing population, even if the contact rate of the distancing population is 1. 
+
+### Contact tracing and isolation
+The following arguments to `initialize_sim_params()` determine how manual and app-based (digital) contact tracing is treated in the simulation.
+
+| Argument name  | Valid values               | Description |
+| :------------- | :------------------------- | :---------- |
+| `p_trace`      | Double 0 $\leq$ p $\leq$ 1 | Probability that a case will be traced manually. |
+| `p_trace_app`  | Double 0 $\leq$ p $\leq$ 1 | Probability that a case is using a contact tracing app for digital tracing. |
+| `p_trace_app_comp`| Double 0 $\leq$ p $\leq$ 1 | Probability that a case would comply with contact tracing app isolation instructions. |
+| `vary_trace`   | Boolean                    | **Experimential feature**: If `TRUE`, then `p_trace` is ignored and hard-coded values for manual tracing completeness will be used (see below). |
+
+
+#### Manual or conventional contact tracing 
+If `vary_trace` is `FALSE`, then every new secondary infection has probability `p_trace` of being traced, which could lead to a faster isolation time. Initial cases and imported cases have zero probability of being contact traced.
+
+If `vary_trace` is `TRUE`, then the value of `p_trace` is ignored. Instead, the probability of being traced depends on the number of new cases to be added at the current time-step. The probabilities are currently hard-coded to be 100% when there are less than 10 new secondary cases, 80% when there are less than 25 new secondary cases and 0% when there are 25 or more new secondary cases. This feature works best when the time-step `dt` is 1 day. **Warning:** This feature is experimental. It may be incorporated into the main package with user-defined values or it may be removed.
+
+Cases that are manually traced follow an isolation timeline defined below.
+
+#### App-based or digital contact tracing
+If both the index case and the secondary case are contact tracing app users, then the pair is considered to be app-traced. This should happen with probability (`p_trace_app`)$^2$. If a secondary case is both app-traced and manually traced, then it follows the app-traced isolation timeline. Imported cases are never app users.
+
+If the secondary case is compliant with the app (happens with probability `p_trace_app_comp`) then the secondary case is isolated following the app-based timeline. If the secondary case is not compliant with the app, but is manually traced, then it will follow the manual tracing isolation timeline. 
+
+To disable app-based tracing in the simulation, set `p_trace_app=0`. In this case, the value of `p_trace_app_comp` is irrelevant, but should also be set to zero for consistency.
+
+#### Isolation timelines
+Two methods are provided in this package for determining isolation timelines of traced cases. The options and parameters are provided as the `iso_delay_params` argument, which expects a named list. The list member `$dist` sets the method to use. Valid values for `dist` are `Hellewell` and `uniform`. Each of these choices take parameters from additional list members. Although some parameters are specified as an amount of time, in days, from either isolation of index case or symptom onset of secondary case, all isolation delay times recorded are relative to the secondary case's symptom onset time, in days. Therefore, these delay values can be negative if the secondary case is isolated prior to symptom onset.
+
+| Isolation delay method | List members required | Description |
+| :--------------------- | :-------------------- | :---------- |
+| Hellewell              | `$dist='Hellewell'`   | See details of this method below, based on implementation in [Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7) |
+|                        | `$shape`              | Double $\ge$ 0. Shape parameter of Weibull distribution for delay to isolation of untraced cases. |
+|                        | `$scale`              | Double $\ge$ 0. Scale parameter of Weibull distribution for delay to isolation of untraced cases. |
+| Uniform distributions  | `$dist='uniform'`     | See details of this method below |
+|                        | `$traced_min` and `$traced_max`  | Double $\ge$ 0. Minimum and maximum values, in days, for uniform distribution describing delay from index case isolation to secondary case isolation for manually traced cases. |
+|                        | `$untraced_min` and `$untraced_max`  | Double $\ge$ 0. Minimum and maximum values, in days, for uniform distribution describing delay from secondary case symptom onset to isolation for untraced cases that **are not** practicing physical distancing. |
+|                        | `$untraced_pd_min` and `$untraced_pd_max`  | Double $\ge$ 0. Minimum and maximum values, in days, for uniform distribution describing delay from secondary case symptom onset to isolation for untraced cases that **are** practicing physical distancing. |
+
+The following table compares the secondary case's isolation timelines for the two methods based on tracing status:
+
+| Tracing status        | `$dist='Hellewell'`  | `$dist='uniform'` |
+| :-------------------- | :------------------- | :---------------- |
+| App traced            | Not implemented      | Immediately upon index case isolation, if app compliant |
+| Manually traced       | Immediately upon symptom onset or at isolation of index case, whichever happens **later** | Delay from index case isolation given by uniform distribution described in `iso_delay_params`
+| Untraced              | Delay from symptom onset given by Weibull distribution described in `iso_delay_params` | Delay from symptom onset given by uniform distribution described in `iso_delay_params`, with a separate distribution possible for untraced secondary cases that are physically distancing. <br /> **Exception:** If the untraced timeline is shorter than any of the traced timelines, then the secondary case is isolated at the untraced timeline. |            | 
+
+##### Examples
+To recreate the benchmark isolation delay distribution from [Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7):
+```{r iso_delay_Hellewell}
+iso_delay_params <- list(
+  dist='Hellewell',
+  shape=1.651524,
+  scale=4.287786
+)
+```
+
+An example using the uniform distribution option where the manual contact tracing process is expected to take 1-2 days, untraced cases generally self-isolate within 4-5 days of symptom onset and untraced cases that are physically distancing might be more careful and isolate within 2-3 days of symptom onset. 
+```{r iso_delay_uniform}
+iso_delay_params <- list(
+  traced_min=1,
+  traced_max=2,
+  untraced_min=4,
+  untraced_max=5,
+  untraced_pd_min=2,
+  untraced_pd_max=3
+)
+```                             
+To treat utnraced distancing and untraced non-distancing cases equally, use the same values for `untraced_pd_*` as `untraced_*`.
+
+### Importations
+The simulation allows for imported cases to be added once per simulation day, at **whole number simulation times only**. Imported cases are new infections that are not secondary infections and should be used to model infected external people entering the community. Imported cases are always untraced and are always not using a contact tracing app, so their secondary infections will also not be app-traced. When imported cases are generated, they are assigned a `contact_rate` in the same way as a new secondary case. In addition, imported cases may self-isolate upon arrival and will be unable to cause new infections for a number of days. Finally, imported cases are added to the simulation after secondary infections that happen at the same time.
+
+The parameters for adding imported cases and any self-isolation of imported cases are provided in the `import_params` argument. The list member `$type` sets the method to use to determine how imported cases are added.
+
+| Imported case generation method | List members required            | Description |
+| :------------------------------ | :------------------------------- | :---------- |
+| No imports                      | `$type='none'` or `$type='None'` | No imports |
+| Time-dependent risk factor      | `$type='daily_risk'`             | Stochastic method: Number of imports each day drawn from Poisson distribution with mean equal to that day's risk factor. |
+|                                 | `$risk`                          | A numeric vector with length equal to the number of days in the simulation, each entry being that day's risk factor for imports. |
+| Poisson (constant risk factor)  | `$type='poisson'`                | Stochastic method: Number of imports each day drawn from Poisson distribution with mean set to a constant value for entire simulation. |
+|                                 | `$rate`                          | Double $\geq$ 0, mean of Poisson distribution for number of imported cases per day |
+| Constant                        | `$type='constant'`               | Deterministic method: Number of imports each day equal to constant value. |
+|                                 | `$rate`                          | Integer $\geq$ 0, number of daily imported cases |
+| Constant with single change     | `$type='constant_two_phase'`     | Deterministic method: Number of imports each day equal to one of two constant values. |
+|                                 | `$delay`                         | Double, simulation time where the constant import rate switches from `rate1` to `rate2`. |
+|                                 | `$rate1`                         | Integer $\geq$ 0, number of daily imported cases before change |
+|                                 | `$rate2`                         | Integer $\geq$ 0, number of daily imported cases after change |
+
+It may be desirable in some situations to introduce a change in a constant import rate at the same time as a change in physical distancing behaviour. 
+
+There are two additional list members in `import_params` that apply to all values of `$type`. These options determine the self-isolation behaviour of imported cases and are described in this table:
+
+| `import_params` list member | Valid values            | Description |
+| :-------------------------- | :------------------------------- | :---------- |
+| `$iso_p_groups`             | Vector of doubles with each entry in range $0 \leq p \leq 1$ and sum of all entries equal to 1. | The length of this vector is the number of different self-isolation behaviours possible for imported cases and each entry is equal to the probability of an imported case belonging to each behaviourial group. |
+| `$iso_lengths`              | Vector of doubles with each entry $\geq$ 0 and length equal to `$iso_p_groups` | The corresponding self-isolation time (in days) for imported cases in each behaviourial group. |
+
+The above list members are required for all import options, except when `$type='None'`.
+
+#### Examples
+Turn off imported cases completely
+```{r import_example_none}
+import_params <- list(type='None')  
+```
+
+Use a hard-coded daily risk vector for a simulation that runs for 5 days and with no self-isolation of imports
+```{r import_example_daily}
+import_params <- list(
+  type='daily_risk',
+  risk=c(1.5,3,5.1,10,0.5),
+  iso_p_groups=c(1),
+  iso_lengths=c(0)
+)
+```
+
+Use a constant value of 10 imports per day with 50% of imported cases self-isolating for 14 days, 25% self-isolating for 7 days and 25% not self-isolating at all
+```{r import_example_constant}
+import_params <- list(
+  type='constant',
+  rate=10,
+  iso_p_groups=c(0.5,0.25,0.25),
+  iso_lenghts=c(14,7,0)
+)
+```
+
+Use a constant value of 0 imports per day until day 14 of the simulation where imports increase to 10 per day. All imported cases self-isolate for 3 days.
+```{r import_example_2phase}
+import_params <- list(
+  type='constant_two_phase',
+  delay=14,
+  rate1=0,
+  rate2=10,
+  iso_p_groups=c(1),
+  iso_lengths=c(3)
+)
+```
+
+### Misc
+
+This section covers the remaining argument(s) to `initialize_sim_params` that do not fit in the above categories:
+
+| Argument name  | Valid values                   | Description                   |
+| :------------- | :----------------------------  | :-----------------------------|
+| `dt`           | Double $\gt$ 0, see note below | Simulation time-step, in days |
+
+Typically, `dt` should be 1 day, however different values are supported. It is strongly recommended to use a value such that `1/dt` is an integer (e.g. good values for `dt` include 0.5, 0.25, 0.1, but not 0.4 or 0.6). This is to ensure the simulation time `sim_status$t` will include all the whole number days so that imported cases happen as expected. This will also make it easier to extract metrics at whole number days. It is also recommended to use `dt` values between 0.1 and 1.0 days.
+
+## Related vignettes
+[Description of output data frames](outputs.html)
+
+## References
+[Bi et al. (2020)](https://www.medrxiv.org/content/10.1101/2020.03.03.20028423v3), "Epidemiology and Transmission of COVID-19 in Shenzhen China: Analysis of 391 cases and 1,286 of their close contacts", medRxiv 2020.03.03.20028423.
+
+[Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7), "Feasibility of controlling COVID-19 outbreaks by isolation of cases and contacts", *The Lancet Global Health*, Vol. 8, E488-E496.
