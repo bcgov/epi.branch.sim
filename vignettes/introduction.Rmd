@@ -4,7 +4,7 @@ author: "Henry Ngo"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{epi.branch.sim introduction}
+  %\VignetteIndexEntry{epi.branch.sim: Introduction}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

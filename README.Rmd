@@ -31,16 +31,63 @@ This package is inspired by [Hellewell et al. "Feasibility of controlling COVID-
 
 ### Installation
 
-Instructions coming soon.
+To install this package along with the vignettes, use
+
+``` r
+remotes::install_github("bcgov/epi.branch.sim", build_vignettes=TRUE)
+```
 
 ### Usage
 
-Examples and vignettes coming soon.
+A very simple example of setting up and running a scenario for 30 days.
 
+```{r}
+# Set up simulation objects
+sim_params <- epi.branch.sim::initialize_sim_params(
+  R0=3.0, infect_dur=999, vary_trace=FALSE, p_trace=0.8, 
+  p_trace_app=0, p_trace_app_comp=0, p_symp=0.9, dt=1,
+  incub_params=list(dist='weibull', shape=2.322737, scale=6.492272),
+  serial_int_params=list(dist='skew_norm', omega=2, alpha=1.95),
+  iso_delay_params=list(dist='Hellewell', shape=1.651524, scale=4.287786),
+  sec_infect_params=list(type='Hellewell', disp=0.16),
+  import_params=list(type="None"), 
+  phys_dist_params=list(
+    pd_pop_frac = 0, 
+    pd_contact_rate1 = 1.0,
+    pd_contact_rate2 = 1.0,
+    pd_change_t = 0)
+)
+start_time <- 0
+n_initial <- 20
+sim_status <- epi.branch.sim::initialize_sim_status(start_time,n_initial) 
+state_df   <- epi.branch.sim::create_state_df(n_initial,sim_params, sim_status, initialize=TRUE)
+record_df  <- epi.branch.sim::create_record_df(state_df, sim_status, initialize=TRUE)
+
+# Run for 30 steps
+for (t in 1:30){
+  out <- epi.branch.sim::step_simulation(sim_status, state_df, record_df, sim_params)
+  sim_status <- out$status # update sim_status
+  state_df <- out$state    # update state_df
+  record_df <- out$record  # update record_df
+}
+
+# Output products are the state_df and record_df data frames
+```
+
+Detailed documentation on the simulation algorithm, input parameters, output data frames and examples are provided as vignettes. Once the package is installed with the `build_vignette=TRUE` option as above, these vignettes can be viewed with:
+
+```r
+browseVignettes('epi.branch.sim')
+```
+
+For help on all documented functions and objects, use:
+```r
+help(package='epi.branch.sim')
+```
 
 ### Project Status
 
-This package is maturing. This is a public release of a tool well used within our team in order to share the tool more widely. At release, the package is functional and all of the intended features are working. More features may be added based on usage and demand. Documentation and examples are also forthcoming.
+This package is maturing. This is a public release of a tool well used within our team in order to share the tool more widely. At release, the package is functional, all of the intended features are working and documented. More features may be added based on usage and demand. Additional documentation and advanced use examples are also forthcoming.
 
 ### Getting Help or Reporting an Issue
 
