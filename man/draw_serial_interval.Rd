@@ -9,14 +9,13 @@ draw_serial_interval(n, incubation_length, sim_params)
 \arguments{
 \item{n}{Number of potential secondary infections for this case}
 
-\item{incubation_length}{Incubation period of this case (used in skewed normal distribution only)}
+\item{incubation_length}{Incubation period of this case (used in skew normal distribution only)}
 
 \item{sim_params}{\code{sim_params} object (a list) containing simulation parameters, where
 all of the information needed to describe the distribution is found within
 \code{sim_params$serial_int_params}. Current distributions possible are:
 \itemize{
-\item \code{dummy}: Uniform number between 1 and 5 (used for testing only)
-\item \code{skewed_norm}: Drawn from skewed normal distribution with xi set
+\item \code{skew_norm}: Drawn from skew normal distribution with xi set
 to the case's incubation period, and attributes "omega" and "alpha" given
 in \code{sim_params$serial_int_params}. This is what Hellewell uses.
 \item \code{gamma}: Drawn from a gamma distribution with attributes

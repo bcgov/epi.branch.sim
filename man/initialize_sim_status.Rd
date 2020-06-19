@@ -4,12 +4,12 @@
 \alias{initialize_sim_status}
 \title{Creates \code{sim_status} object, the simulation state vector}
 \usage{
-initialize_sim_status(start_time, initial_n_cases)
+initialize_sim_status(start_time, start_n_cases)
 }
 \arguments{
 \item{start_time}{The start time (in days) for the simulation}
 
-\item{initial_n_cases}{The number of cases at the start of the simulation.}
+\item{start_n_cases}{The number of cases at the start of the simulation.}
 }
 \value{
 A list containing the simulation state vector quantities, which includes:

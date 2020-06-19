@@ -97,20 +97,24 @@ run_scenario_Hellewell <- function(nsims,p_trace,R0,
 
     # Turn off / disable features not used by Hellewell's work
     infect_dur <- 999 # Hellewell et al. doesn't deactivate cases so we won't either
+    do_variable_trace<-FALSE
+    p_trace_app<-0
+    p_trace_app_comp<-0
     dt <- 1 # Advance one day at a time
     import_params <- list(type='None')
-    phys_dist_params <- list(contact_rates=c(1),p_group=c(1),delay=0)
-    do_variable_trace<-FALSE
+    phys_dist_params <- list(pd_pop_frac=0,pd_contact_rate1=1,pd_contact_rate2=1,pd_change_t=0)
+
 
     # Initialize the required simulation objects
     sim_params <- initialize_sim_params(
       R0, infect_dur, do_variable_trace, p_trace,
-      p_symp, dt, incub_params, serial_int_params,
+      p_trace_app, p_trace_app_comp, p_symp, dt,
+      incub_params, serial_int_params,
       iso_delay_params, sec_infect_params,
       import_params, phys_dist_params
     )
-    sim_status <- initialize_sim_status(initial_n_cases, sim_status)
-    state_df   <- create_state_df(0,initial_n_cases,sim_params, initialize=TRUE)
+    sim_status <- initialize_sim_status(start_time=0,initial_cases)
+    state_df   <- create_state_df(initial_cases,sim_params,sim_status,initialize=TRUE)
     record_df  <- create_record_df(state_df, sim_status, initialize=TRUE)
 
     timemax=ceiling(12*7/dt) # 12 weeks after initial cases (Fig 3 caption)
