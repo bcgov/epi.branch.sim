@@ -158,6 +158,13 @@ create_state_df <- function(n_cases, sim_params, sim_status,
   n_cols <- length(col_names)
   # Create data frame
   state_df <- data.frame(matrix(nrow=n_cases,ncol=n_cols, dimnames=list(NULL,col_names)))
+
+  # If no cases being added, then return empty data frame
+  # This should only happen when initializing
+  if (n_cases==0){
+    return(state_df)
+  }
+
   # Fill in start values
   if (initialize){
     state_df$case_id <- 1:n_cases # special case for starting out
@@ -251,6 +258,13 @@ create_record_df <- function(state_df, sim_status, initialize=FALSE, infection_s
   n_rows <- nrow(state_df)
   # Create data frame
   rec_df <- data.frame(matrix(nrow=n_rows,ncol=n_cols, dimnames=list(NULL,col_names)))
+
+  # If no cases being added, then return empty data frame
+  # This should only happen when initializing
+  if (n_rows==0){
+    return(rec_df)
+  }
+
   # Populate data frame
   rec_df$case_id <- state_df$case_id
   if (initialize){
