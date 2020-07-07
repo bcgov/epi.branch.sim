@@ -312,16 +312,18 @@ The parameters for adding imported cases and any self-isolation of imported case
 | Imported case generation method | List members required            | Description |
 | :------------------------------ | :------------------------------- | :---------- |
 | No imports                      | `$type='none'` or `$type='None'` | No imports |
-| Time-dependent risk factor      | `$type='daily_risk'`             | Stochastic method: Number of imports each day drawn from Poisson distribution with mean equal to that day's risk factor. |
-|                                 | `$risk`                          | A numeric vector with length equal to the number of days in the simulation, each entry being that day's risk factor for imports. |
-| Poisson (constant risk factor)  | `$type='poisson'`                | Stochastic method: Number of imports each day drawn from Poisson distribution with mean set to a constant value for entire simulation. |
-|                                 | `$rate`                          | Double $\geq$ 0, mean of Poisson distribution for number of imported cases per day |
 | Constant                        | `$type='constant'`               | Deterministic method: Number of imports each day equal to constant value. |
 |                                 | `$rate`                          | Integer $\geq$ 0, number of daily imported cases |
 | Constant with single change     | `$type='constant_two_phase'`     | Deterministic method: Number of imports each day equal to one of two constant values. |
 |                                 | `$delay`                         | Double, simulation time where the constant import rate switches from `rate1` to `rate2`. |
 |                                 | `$rate1`                         | Integer $\geq$ 0, number of daily imported cases before change |
 |                                 | `$rate2`                         | Integer $\geq$ 0, number of daily imported cases after change |
+| Time-dependent constant rate    | `$type='daily_constant'`         | Deterministic method: Number of import each day given by input vector |
+|                                 | `$rate`                          | A numeric vector with length equal to the number of days in the simulation, each entry being the number of imported cases to be added on that day.
+| Poisson (constant risk factor)  | `$type='poisson'`                | Stochastic method: Number of imports each day drawn from Poisson distribution with mean set to a constant value for entire simulation. |
+|                                 | `$rate`                          | Double $\geq$ 0, mean of Poisson distribution for number of imported cases per day |
+| Time-dependent risk factor      | `$type='daily_risk'`             | Stochastic method: Number of imports each day drawn from Poisson distribution with mean equal to that day's risk factor. |
+|                                 | `$risk`                          | A numeric vector with length equal to the number of days in the simulation, each entry being that day's risk factor for imports. |
 
 It may be desirable in some situations to introduce a change in a constant import rate at the same time as a change in physical distancing behaviour. 
 

@@ -69,11 +69,6 @@ generate_secondary_infections <- function(state_df, sim_params){
 #' \describe{
 #'  \item{\code{type}="None" or "none"}{No cases are imported.}
 #'
-#'  \item{\code{type}="daily_risk"}{Each day, the number of imported cases is drawn from a Poisson
-#'  distribution with mean equal to the daily risk. The daily risk is given by a vector defined by
-#'  \code{sim_params$import_params$risk}, which should have length equal to the number of days in the
-#'  simulation.}
-#'
 #'  \item{\code{type}="constant"}{Each day, the number of imported cases is equal to a constant value, set
 #'  by \code{sim_params$import_params$rate}.}
 #'
@@ -81,8 +76,17 @@ generate_secondary_infections <- function(state_df, sim_params){
 #'  times prior to \code{sim_params$import_params$delay}, the rate is \code{sim_params$import_params$rate1}.
 #'  After this time, the rate is \code{sim_params$import_params$rate2}.}
 #'
+#'  \item{\code{type}="daily_constant"}{Each day, the number of imported cases is given by a vector defined by
+#'  \code{sim_params$import_params$rate}, which should have length equal to the number of days in the
+#'  simulation.}
+#'
 #'  \item{\code{type}="poisson"}{Each day, the number of imported cases is drawn from a Poisson distribution
 #'  with mean set by \code{sim_params$import_params$rate}.}
+#'
+#'  \item{\code{type}="daily_risk"}{Each day, the number of imported cases is drawn from a Poisson
+#'  distribution with mean equal to the daily risk. The daily risk is given by a vector defined by
+#'  \code{sim_params$import_params$risk}, which should have length equal to the number of days in the
+#'  simulation.}
 #' }
 #'
 #' @param sim_params  \code{sim_params} object (a list) containing simulation parameters
@@ -98,11 +102,6 @@ generate_imported_infections <- function(sim_params, sim_status){
   if (import_params$type=="None" | import_params$type=='none'){
     n_import<-0
   }
-  else if (import_params$type=='daily_risk'){
-    risk_index <- sim_status$t
-    risk<-import_params$risk[risk_index]
-    n_import <- rpois(1,risk)
-  }
   else if (import_params$type=='constant'){
     n_import <- import_params$rate
   }
@@ -113,8 +112,17 @@ generate_imported_infections <- function(sim_params, sim_status){
       n_import <- import_params$rate2
     }
   }
+  else if (import_params$type=='daily_constant'){
+    rate_index <- sim_status$t
+    n_import <- import_params$rate[rate_index]
+  }
   else if (import_params$type=='poisson'){
     n_import <- rpois(1,import_params$rate)
+  }
+  else if (import_params$type=='daily_risk'){
+    risk_index <- sim_status$t
+    risk<-import_params$risk[risk_index]
+    n_import <- rpois(1,risk)
   }
   return(list(n_imported_infections=n_import, import_source='imported'))
 }
