@@ -29,11 +29,6 @@ added to the simulation. The following import types are supported, which is chos
 \describe{
 \item{\code{type}="None" or "none"}{No cases are imported.}
 
-\item{\code{type}="daily_risk"}{Each day, the number of imported cases is drawn from a Poisson
-distribution with mean equal to the daily risk. The daily risk is given by a vector defined by
-\code{sim_params$import_params$risk}, which should have length equal to the number of days in the
-simulation.}
-
 \item{\code{type}="constant"}{Each day, the number of imported cases is equal to a constant value, set
 by \code{sim_params$import_params$rate}.}
 
@@ -41,7 +36,16 @@ by \code{sim_params$import_params$rate}.}
 times prior to \code{sim_params$import_params$delay}, the rate is \code{sim_params$import_params$rate1}.
 After this time, the rate is \code{sim_params$import_params$rate2}.}
 
+\item{\code{type}="daily_constant"}{Each day, the number of imported cases is given by a vector defined by
+\code{sim_params$import_params$rate}, which should have length equal to the number of days in the
+simulation.}
+
 \item{\code{type}="poisson"}{Each day, the number of imported cases is drawn from a Poisson distribution
 with mean set by \code{sim_params$import_params$rate}.}
+
+\item{\code{type}="daily_risk"}{Each day, the number of imported cases is drawn from a Poisson
+distribution with mean equal to the daily risk. The daily risk is given by a vector defined by
+\code{sim_params$import_params$risk}, which should have length equal to the number of days in the
+simulation.}
 }
 }
