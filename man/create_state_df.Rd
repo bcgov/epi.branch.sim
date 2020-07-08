@@ -55,13 +55,13 @@ The columns of this dataframe are: \code{case_id}, \code{status}, \code{is_trace
 \code{is_trace_app_user}, \code{is_trace_app_comply}, \code{is_traced_by_app},
 \code{is_symptomatic}, \code{days_infected}, \code{incubation_length},
 \code{isolation_delay}, \code{infection_length}, \code{contact_rate},
-\code{n_sec_infects}, and \code{serial_intervals}. The meaning of these columns
+\code{n_sec_infects}, and \code{generation_intervals}. The meaning of these columns
 will be documented elsewhere. Most of the columns are constant and are initialized
 in this function via calls to related functions in draw_distributions.R. All time lengths
 are in days and represent a relative time, not absolute times. The
-\code{status}, \code{n_sec_infects} and \code{serial_intervals} columns are updated
+\code{status}, \code{n_sec_infects} and \code{generation_intervals} columns are updated
 over the course of the simulation as cases progress through infection states. The
-\code{n_sec_infects} counter and corresponding \code{serial_intervals} list have its
+\code{n_sec_infects} counter and corresponding \code{generation_intervals} list have its
 elements removed as the secondary infections are loaded into the simulation. As cases
 become isolated or inactive and no longer cause infections, they are removed from this
 dataframe.

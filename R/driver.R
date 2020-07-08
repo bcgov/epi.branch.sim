@@ -37,9 +37,9 @@
 #' @param p_trace   Fraction of new infections that are traced
 #' @param R0        Basic reproduction number for disease
 #' @param infections_before_symptoms  One of "low", "medium" or "high" corresponding to one
-#'                                    of three serial interval distributions considered by
+#'                                    of three generation interval distributions considered by
 #'                                    Hellewell et al. These distributions result in <1%,
-#'                                    15%, and 30% of serial interval lengths occuring prior
+#'                                    15%, and 30% of generation interval lengths occuring prior
 #'                                    to symptom onset. "Medium" (15%) is the default value
 #'                                    and the benchmark used in Hellewell et al.
 #' @param iso_delay_length  One of "short" or "long" corresponding to two distributions used
@@ -72,13 +72,13 @@ run_scenario_Hellewell <- function(nsims,p_trace,R0,
     # Set up incubation period length distribution as per Hellewell et al.
     incub_params <- list(dist='weibull', shape=2.322737, scale=6.492272)
 
-    # Set up serial intervals to one of three levels used by Hellewell et al.
+    # Set up generation intervals to one of three levels used by Hellewell et al. (called serial intervals there)
     if (infections_before_symptoms == 'low'){ # <1% infections before symptom onset
-      serial_int_params <- list(dist='skew_norm', omega=2, alpha=30)
+      generation_int_params <- list(dist='skew_norm', omega=2, alpha=30)
     } else if (infections_before_symptoms == 'medium'){ # 15% infections before symptom onset
-      serial_int_params <- list(dist='skew_norm', omega=2, alpha=1.95) # DEFAULT BENCHMARK
+      generation_int_params <- list(dist='skew_norm', omega=2, alpha=1.95) # DEFAULT BENCHMARK
     } else if (infections_before_symptoms == 'high'){ # 30% infections before symptoms
-      serial_int_params <- list(dist='skew_norm', omega=2, alpha=0.7)
+      generation_int_params <- list(dist='skew_norm', omega=2, alpha=0.7)
     } else {
       stop('Invalid value for argument "infections_before_symptoms".')
     }
@@ -109,7 +109,7 @@ run_scenario_Hellewell <- function(nsims,p_trace,R0,
     sim_params <- initialize_sim_params(
       R0, infect_dur, do_variable_trace, p_trace,
       p_trace_app, p_trace_app_comp, p_symp, dt,
-      incub_params, serial_int_params,
+      incub_params, generation_int_params,
       iso_delay_params, sec_infect_params,
       import_params, phys_dist_params
     )
@@ -187,7 +187,7 @@ run_scenarios <- function(scenario_params, outdir='.',
   for (j in 1:nsims){
     infect_dur <- 999 # Hellewell et al. doesn't deactivate cases so we won't either
     incub_params <- list(dist='lognormal',meanlog=1.57, sdlog=0.65)
-    serial_int_params <- list(dist='gamma', shape=2.29, rate=0.36)
+    generation_int_params <- list(dist='gamma', shape=2.29, rate=0.36)
     iso_delay_params <- list(dist='uniform_delay', min=2, max=3, delay=2) # 2-3 days if traced, 4-5 if not
     sec_infect_params <- list(type='Hellewell', disp=0.58) # From JH2020 but with larger disp.
     if (import_model=='None'){
@@ -199,7 +199,7 @@ run_scenarios <- function(scenario_params, outdir='.',
     phys_dist_params <- list(contact_rates=contact_rates, p_group=pd_p_group, delay=pd_delay)
     sim_params <- initialize_sim_params(R0, infect_dur, do_variable_trace, p_trace,
                                         p_symp, dt,
-                                        incub_params, serial_int_params,
+                                        incub_params, generation_int_params,
                                         iso_delay_params, sec_infect_params,
                                         import_params, phys_dist_params)
     sim_status <- initialize_sim_status(0,n_initial)

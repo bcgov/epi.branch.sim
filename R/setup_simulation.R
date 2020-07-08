@@ -34,8 +34,8 @@
 #' @param dt            Size of the simulation time step (in days).
 #' @param incub_params  Parameters for distribution of incubation length.
 #'                      See \code{\link{draw_incubation_period}}.
-#' @param serial_int_params  Parameters for distribution of serial intervals.
-#'                           See \code{\link{draw_serial_interval}}.
+#' @param generation_int_params  Parameters for distribution of generation intervals.
+#'                           See \code{\link{draw_generation_interval}}.
 #' @param iso_delay_params   Parameters for distribution of delay to isolation.
 #'                           See \code{\link{draw_isolation_delay_period}}.
 #' @param sec_infect_params  Parameters to model secondary infections.
@@ -50,7 +50,7 @@
 #' @export
 initialize_sim_params <- function(R0, infect_dur, vary_trace, p_trace,
                                   p_trace_app, p_trace_app_comp, p_symp, dt,
-                                  incub_params, serial_int_params,
+                                  incub_params, generation_int_params,
                                   iso_delay_params, sec_infect_params,
                                   import_params, phys_dist_params){
   sim_params <- list(
@@ -64,7 +64,7 @@ initialize_sim_params <- function(R0, infect_dur, vary_trace, p_trace,
     p_symp=p_symp,              # probability of symptomatic case
     dt=dt,                      # size of time step
     incub_params=incub_params,           # parameters for distribution of incubation length
-    serial_int_params=serial_int_params, # parameters for distribution of serial interval
+    generation_int_params=generation_int_params, # parameters for distribution of generation interval
     iso_delay_params=iso_delay_params,   # parameters for distribution of isolation delay length
     sec_infect_params=sec_infect_params,  # parameters to model secondary infections
     # Daily import hazards
@@ -116,13 +116,13 @@ initialize_sim_status <- function(start_time, start_n_cases){
 #' \code{is_trace_app_user}, \code{is_trace_app_comply}, \code{is_traced_by_app},
 #' \code{is_symptomatic}, \code{days_infected}, \code{incubation_length},
 #' \code{isolation_delay}, \code{infection_length}, \code{contact_rate},
-#' \code{n_sec_infects}, and \code{serial_intervals}. The meaning of these columns
+#' \code{n_sec_infects}, and \code{generation_intervals}. The meaning of these columns
 #' will be documented elsewhere. Most of the columns are constant and are initialized
 #' in this function via calls to related functions in draw_distributions.R. All time lengths
 #' are in days and represent a relative time, not absolute times. The
-#' \code{status}, \code{n_sec_infects} and \code{serial_intervals} columns are updated
+#' \code{status}, \code{n_sec_infects} and \code{generation_intervals} columns are updated
 #' over the course of the simulation as cases progress through infection states. The
-#' \code{n_sec_infects} counter and corresponding \code{serial_intervals} list have its
+#' \code{n_sec_infects} counter and corresponding \code{generation_intervals} list have its
 #' elements removed as the secondary infections are loaded into the simulation. As cases
 #' become isolated or inactive and no longer cause infections, they are removed from this
 #' dataframe.
@@ -154,7 +154,7 @@ create_state_df <- function(n_cases, sim_params, sim_status,
   col_names <- c("case_id", "status", "is_traced", "is_trace_app_user", "is_trace_app_comply",
                  "is_traced_by_app", "is_symptomatic", "days_infected", "incubation_length",
                  "isolation_delay",  "infection_length", "contact_rate", "n_sec_infects",
-                 "serial_intervals") #
+                 "generation_intervals") #
   n_cols <- length(col_names)
   # Create data frame
   state_df <- data.frame(matrix(nrow=n_cases,ncol=n_cols, dimnames=list(NULL,col_names)))
@@ -199,8 +199,8 @@ create_state_df <- function(n_cases, sim_params, sim_status,
   state_df$infection_length <- draw_infection_length(n_cases, sim_params)
   sec_infect_out <- draw_sec_infects_df(state_df,sim_params, sim_status, import=import)
   state_df$n_sec_infects<- sec_infect_out$n
-  state_df$serial_intervals<- sec_infect_out$serial
-  state_df$non_infect_serials <- sec_infect_out$non_infects
+  state_df$generation_intervals<- sec_infect_out$generation
+  state_df$non_infect_generations <- sec_infect_out$non_infects
   # Return
   return(state_df)
 }
@@ -220,11 +220,11 @@ create_state_df <- function(n_cases, sim_params, sim_status,
 #' The columns of this dataframe are: \code{case_id}, \code{source}, \code{is_traced},
 #' \code{is_trace_app_user}, \code{is_traced_by_app}, \code{is_trace_app_comply},
 #' \code{is_symptomatic}, \code{d_incub}, \code{d_iso_delay}, \code{d_infection},
-#' \code{contact_rate}, \code{n_sec_infects}, \code{d_serial_ints}, \code{t_inf},
+#' \code{contact_rate}, \code{n_sec_infects}, \code{d_generation_ints}, \code{t_inf},
 #' \code{t_symp}, \code{t_iso}, \code{t_inact}, \code{cases_inf}, \code{s_status},
-#' and \code{non_infect_serials}. The meaning of these columns will be documented elsewhere.
+#' and \code{non_infect_generations}. The meaning of these columns will be documented elsewhere.
 #' Columns \code{case_id} through \code{t_inf} as well as column
-#' \code{non_infect_serials} are constant and are initialized when this function
+#' \code{non_infect_generations} are constant and are initialized when this function
 #' is called, using the provided \code{state_df} object. The columns \code{t_symp},
 #' \code{t_iso} and \code{t_inact} are initialized as \code{NA} and replaced with the actual
 #' simulation time where these events happen. If they do not happen (e.g. an asymptomatic
@@ -250,9 +250,9 @@ create_record_df <- function(state_df, sim_status, initialize=FALSE, infection_s
   # List of columns to record
   col_names <- c("case_id", "source", "is_traced", "is_trace_app_user", "is_traced_by_app",
                  "is_trace_app_comply", "is_symptomatic", "d_incub", "d_iso_delay",
-                 "d_infection", "contact_rate", "n_sec_infects", "d_serial_ints",
+                 "d_infection", "contact_rate", "n_sec_infects", "d_generation_ints",
                  "t_inf", "t_symp", "t_iso", "t_inact",
-                 "cases_inf", "s_status", "non_infect_serials")
+                 "cases_inf", "s_status", "non_infect_generations")
   n_cols <- length(col_names)
   # Get number of rows
   n_rows <- nrow(state_df)
@@ -282,11 +282,11 @@ create_record_df <- function(state_df, sim_status, initialize=FALSE, infection_s
   rec_df$d_infection <- state_df$infection_length
   rec_df$contact_rate <- state_df$contact_rate
   rec_df$n_sec_infects <- state_df$n_sec_infects
-  rec_df$d_serial_ints <- state_df$serial_intervals
+  rec_df$d_generation_ints <- state_df$generation_intervals
   #rec_df$sec_infects <- state_df$sec_infects
   rec_df$t_inf <- rep(sim_status$t, n_rows)
   rec_df$s_status <- state_df$status
-  rec_df$non_infect_serials <- state_df$non_infect_serials
+  rec_df$non_infect_generations <- state_df$non_infect_generations
 
   return(rec_df)
 }
