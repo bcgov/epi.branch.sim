@@ -113,14 +113,14 @@ generate_imported_infections <- function(sim_params, sim_status){
     }
   }
   else if (import_params$type=='daily_constant'){
-    rate_index <- sim_status$t
+    rate_index <- as.integer(round(sim_status$t))
     n_import <- import_params$rate[rate_index]
   }
   else if (import_params$type=='poisson'){
     n_import <- rpois(1,import_params$rate)
   }
   else if (import_params$type=='daily_risk'){
-    risk_index <- sim_status$t
+    risk_index <- as.integer(round(sim_status$t))
     risk<-import_params$risk[risk_index]
     n_import <- rpois(1,risk)
   }
