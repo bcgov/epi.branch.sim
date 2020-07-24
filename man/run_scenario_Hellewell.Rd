@@ -23,9 +23,9 @@ run_scenario_Hellewell(
 \item{R0}{Basic reproduction number for disease}
 
 \item{infections_before_symptoms}{One of "low", "medium" or "high" corresponding to one
-of three serial interval distributions considered by
+of three generation interval distributions considered by
 Hellewell et al. These distributions result in <1\%,
-15\%, and 30\% of serial interval lengths occuring prior
+15\%, and 30\% of generation interval lengths occuring prior
 to symptom onset. "Medium" (15\%) is the default value
 and the benchmark used in Hellewell et al.}
 

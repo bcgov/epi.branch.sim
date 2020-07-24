@@ -61,7 +61,7 @@ The following arguments to `initialize_sim_params` cover these numerical disease
 | `infect_dur`   | Double $\geq$ 0      | In days. The total length of time a case is considered to be active and infectious, in the absence of any isolation protocols. Cases are considered "inactive" after being infected for this length of time. To avoid the use of the "inactive" state, set this value to be larger than the simulation's end time. |
 | `p_symp`       | Double, 0 $\leq$ p $\leq$ 1  | Fraction of cases that are symptomatic. |
 
-### Disease parameters (distributions): incubation period and serial intervals
+### Disease parameters (distributions): incubation period and generation intervals
 
 #### Incubation period
 In this simulation, every case, whether symptomatic or not, has a value drawn for its incubation period. The incubation period distribution is provided as the `incub_params` argument, which expects a named list. The list member `$dist` sets the probability distribution function to use. Valid values for `dist` are `lognormal` and `weibull`. Each of these choices take shape and scale parameters from additional list members with names that match shape and scale argument names of the corresponding R function that generates random numbers from the given distribution. The parameters should be given so that the distribution function generates random incubation period values in days.
@@ -96,12 +96,12 @@ incub_params <- list(
 )
 ```
 
-#### Serial intervals
-In this simulation, the serial interval is defined to be the number of days between start of infection of the index case to the start of infection of a potential secondary case. The serial interval distribution is provided as the `serial_int_params` argument, which expects a named list. The list member `$dist` sets the probability distribution function to use. Valid values for `dist` are `skew_norm` and `gamma`. Each of these choices take shape and scale parameters from additional list members with names that match shape and scale argument names of the corresponding R function that generates random numbers from the given distribution. The parameters should be given so that the distribution function generates random serial interval values in days.
+#### Generatio intervals
+The generation interval is the number of days between start of infection of the index case to the start of infection of a potential secondary case. The generation interval distribution is provided as the `generation_int_params` argument, which expects a named list. The list member `$dist` sets the probability distribution function to use. Valid values for `dist` are `skew_norm` and `gamma`. Each of these choices take shape and scale parameters from additional list members with names that match shape and scale argument names of the corresponding R function that generates random numbers from the given distribution. The parameters should be given so that the distribution function generates random generation interval values in days.
 
-| Serial interval distribution | List members required | Description |
-| :--------------------------- | :-------------------- | :---------- |
-| Skew normal                  | `$dist='skew_norm'`   | Uses `sn::rsn` to draw numbers. The `xi` location parameter is equal to the incubation period. This distribution is used to parameterize how often serial intervals are shorter than the incubation period (i.e. pre-symptomatic transmission). |
+| Generation interval distribution | List members required | Description |
+| :------------------------------- | :-------------------- | :---------- |
+| Skew normal                      | `$dist='skew_norm'`   | Uses `sn::rsn` to draw numbers. The `xi` location parameter is equal to the incubation period. This distribution is used to parameterize how often generation intervals are shorter than the incubation period (i.e. pre-symptomatic transmission). |
 |                              | `$omega`              | Double $\geq$ 0. Scale parameter, same as for a normal distribution. |
 |                              | `$alpha`              | Double. Parameterizes the skewness of the distribution. Positive values result in a right-skewed distribution, while negative values result in a left-skewed distribution. A value of zero has no skew. |
 | Gamma                        | `$dist='gamma'`       | Uses `rgamma` to draw numbers |
@@ -111,23 +111,24 @@ In this simulation, the serial interval is defined to be the number of days betw
 **Note**: At this time, only the above directly coded distributions are available in this package. A future item is to generalize to allow distributions available in R or otherwise user-defined.
 
 ##### Examples
-The serial interval distribution from [Bi et al. (2020)](https://www.medrxiv.org/content/10.1101/2020.03.03.20028423v3):
-```{r serial_int_example_bi}
-serial_int_params <- list(
+Defining a generation interval distribution as a gamma function:
+```{r generation_int_example_bi}
+generation_int_params <- list(
   dist='gamma', 
   shape=2.29, 
   rate=0.36
 )
 ```
 
-The benchmark serial interval distribution from [Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7), where 15% of serial intervals are shorter than the incubation period:
-```{r serial_int_example_hellewell}
-serial_int_params <- list(
+The benchmark generation interval distribution from [Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7), where 15% of generation intervals are shorter than the incubation period:
+```{r generation_int_example_hellewell}
+generation_int_params <- list(
   dist='skew_norm', 
   omega=2, 
   alpha=1.95
 )
 ```
+(Note: In [Hellewell et al. (2020)](https://doi.org/10.1016/S2214-109X(20)30074-7), they call this the serial interval instead of the generation interval.)
 
 ### Secondary infection generation
 Options for the secondary infection generation algorithm is provided as the `sec_infect_params` argument, which expects a named list. The list member `$type` sets the algorithm type. Currently, only one algorithm is implemented, so `$type` must be `"Hellewell"`, described below.
@@ -143,12 +144,12 @@ The only algorithm implemented in the package is the same as in [Hellewell et al
     + The `contact_rate` depends on whether the index case is reducing their contacts through physical distancing, and is typically a number between 0 and 1. See the next section for more details. 
     + The `contact_rate` is a fixed value for the index case, determined when the index case is generated. If the overall population changes their distancing behaviour afterwards, existing cases do not change their `contact_rate`.
 
-2. Serial intervals are drawn for each potential secondary infection from the serial interval distribution.
+2. Generation intervals are drawn for each potential secondary infection from the generation interval distribution.
 
-3. Serial intervals that fall outside the time frame where the index case could infect others are prevented from happening.
-    + If the index case is an imported case, it may be following self-quarantine guidelines so serial intervals shorter than the length of this quarantine period are prevented from becoming secondary infections.
-    + If the index case is eventually isolated, serial intervals that happen after isolation time are prevented from becoming secondary infections.
-    + Serial intervals that happen after the length of infection (`infect_dur`) are also prevented from becoming secondary infections.
+3. Generation intervals that fall outside the time frame where the index case could infect others are prevented from happening.
+    + If the index case is an imported case, it may be following self-quarantine guidelines so generation intervals shorter than the length of this quarantine period are prevented from becoming secondary infections.
+    + If the index case is eventually isolated, generation intervals that happen after isolation time are prevented from becoming secondary infections.
+    + Generation intervals that happen after the length of infection (`infect_dur`) are also prevented from becoming secondary infections.
   
 4. The secondary infections are not immediately added to the simulation. Instead, they are queued up in the state vector and are added at the corresponding time-step.
 

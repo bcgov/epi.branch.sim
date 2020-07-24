@@ -14,7 +14,7 @@ initialize_sim_params(
   p_symp,
   dt,
   incub_params,
-  serial_int_params,
+  generation_int_params,
   iso_delay_params,
   sec_infect_params,
   import_params,
@@ -48,8 +48,8 @@ Used in \code{\link{draw_symptomatic_status}}.}
 \item{incub_params}{Parameters for distribution of incubation length.
 See \code{\link{draw_incubation_period}}.}
 
-\item{serial_int_params}{Parameters for distribution of serial intervals.
-See \code{\link{draw_serial_interval}}.}
+\item{generation_int_params}{Parameters for distribution of generation intervals.
+See \code{\link{draw_generation_interval}}.}
 
 \item{iso_delay_params}{Parameters for distribution of delay to isolation.
 See \code{\link{draw_isolation_delay_period}}.}

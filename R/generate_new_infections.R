@@ -38,9 +38,9 @@ generate_secondary_infections <- function(state_df, sim_params){
   if (nrow(state_df)>0){
     # TODO: Can we replace this for-loop?
     for (row in 1:nrow(state_df)){
-      serial_int <- state_df$serial_intervals[[row]]
-      # Find which entries in serial_int are causing new secondary infections from this case
-      sec_inf_ind <- state_df$days_infected[row] > serial_int
+      generation_int <- state_df$generation_intervals[[row]]
+      # Find which entries in generation_int are causing new secondary infections from this case
+      sec_inf_ind <- state_df$days_infected[row] > generation_int
       n_sec_inf <- sum(sec_inf_ind)
       if (n_sec_inf < 1){
         next # no new infections caused by this case this step
@@ -48,9 +48,9 @@ generate_secondary_infections <- function(state_df, sim_params){
       # Add case_id to output list once for each new secondary infection case
       case_id <- state_df$case_id[row]
       sec_infection_sources <- c(sec_infection_sources,rep(case_id,n_sec_inf))
-      # Decrease infection counter and remove from serial interval list
+      # Decrease infection counter and remove from generation interval list
       state_df$n_sec_infects[row] <- state_df$n_sec_infects[row] - n_sec_inf
-      state_df$serial_intervals[[row]] <- serial_int[!sec_inf_ind]
+      state_df$generation_intervals[[row]] <- generation_int[!sec_inf_ind]
     }
     return(list(updated_state_df=state_df, sec_infection_sources=sec_infection_sources))
   }
