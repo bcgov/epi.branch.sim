@@ -1,6 +1,6 @@
 Package: epi.branch.sim
 Title: Simulates an Epidemic Outbreak with a Branching Process
-Version: 0.9.5
+Version: 0.9.6
 Authors@R: 
     c(person(given = "Henry",
              family = "Ngo",
