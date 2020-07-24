@@ -35,6 +35,8 @@ Description: Simulates an epidemic outbreak with a branching process from a numb
     every case generated during the course of the simulation. This can be used to 
     generate metrics or other statistics across a large number of runs. Some example 
     driver functions to do this are provided.
+Imports:
+    dplyr
 Suggests:
     sn,
     knitr,
