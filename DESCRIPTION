@@ -15,12 +15,12 @@ Authors@R:
       person(given = "Ioana",
              family = "Sevcenco",
              role = "ctb"),
-      person(given = “Caroline",
-             family = “Colijn",
-             role = "ctb”),
-      person(given = “Daniel",
-             family = “Coombs",
-             role = "ctb”),
+      person(given = "Caroline",
+             family = "Colijn",
+             role = "ctb"),
+      person(given = "Daniel",
+             family = "Coombs",
+             role = "ctb"),
       person(given = "Province of British Columbia",
              role = "cph"))
 Description: Simulates an epidemic outbreak with a branching process from a number of 
