@@ -46,7 +46,7 @@ sim_params <- epi.branch.sim::initialize_sim_params(
   R0=3.0, infect_dur=999, vary_trace=FALSE, p_trace=0.8, 
   p_trace_app=0, p_trace_app_comp=0, p_symp=0.9, dt=1,
   incub_params=list(dist='weibull', shape=2.322737, scale=6.492272),
-  serial_int_params=list(dist='skew_norm', omega=2, alpha=1.95),
+  generation_int_params=list(dist='skew_norm', omega=2, alpha=1.95),
   iso_delay_params=list(dist='Hellewell', shape=1.651524, scale=4.287786),
   sec_infect_params=list(type='Hellewell', disp=0.16),
   import_params=list(type="None"), 
