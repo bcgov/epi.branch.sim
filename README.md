@@ -10,10 +10,10 @@ Every simulated case has disease and intervention parameters
 stochastically drawn from user-provided distributions. These parameters
 determine which secondary cases occur, which in turn create the next
 generation of cases. This simulation implements modelling of
-interventions such as: \* manual/conventional contact tracing, \*
-app-based contact tracing usage and compliance, \* reduction of contacts
-through physical distancing, \* self-isolation of cases after certain
-conditions are met, and \* quarantine/isolation of new arrivals.
+interventions such as: manual/conventional contact tracing, 
+app-based contact tracing usage and compliance, reduction of contacts
+through physical distancing, self-isolation of cases after certain
+conditions are met, and quarantine/isolation of new arrivals.
 
 This simulation also includes the option of adding new cases via
 importation, which may have different contact tracing and self-isolation
