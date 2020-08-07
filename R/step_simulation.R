@@ -157,8 +157,8 @@ step_simulation <- function(sim_status, state_df, rec_df, sim_params){
 
   # Add secondary infections to state_df and rec_df
   if (n_sec_infections > 0){
-    out_state_df <- dplyr::bind_rows(trunc_state_df, sec_cases_state_df)
-    out_rec_df <- dplyr::bind_rows(rec_df, sec_cases_rec_df)
+    out_state_df <- rbind(trunc_state_df, sec_cases_state_df)
+    out_rec_df <- rbind(rec_df, sec_cases_rec_df)
   } else{
     out_state_df <- trunc_state_df
     out_rec_df <- rec_df
@@ -166,8 +166,8 @@ step_simulation <- function(sim_status, state_df, rec_df, sim_params){
 
   # Add imported infections to output state_df and rec_df
   if (n_imp_infections > 0){
-    out_state_df <- dplyr::bind_rows(out_state_df, imp_cases_state_df)
-    out_rec_df <- dplyr::bind_rows(out_rec_df, imp_cases_rec_df)
+    out_state_df <- rbind(out_state_df, imp_cases_state_df)
+    out_rec_df <- rbind(out_rec_df, imp_cases_rec_df)
   }
 
   # Return updated inputs
