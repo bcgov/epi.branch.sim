@@ -87,7 +87,9 @@ help(package='epi.branch.sim')
 
 ### Project Status
 
-This package is maturing. This is a public release of a tool well used within our team in order to share the tool more widely. At release, the package is functional, all of the intended features are working and documented. More features may be added based on usage and demand. Additional documentation and advanced use examples are also forthcoming.
+This package is maturing. This is a public release of a tool regularly used within our team in order to share the tool more widely. At release, the package is functional, all of the intended features are working and documented. More features may be added based on usage and demand. Additional documentation and advanced use examples are also forthcoming.
+
+Plans to improve speed and efficiency are also in the works.
 
 ### Getting Help or Reporting an Issue
 
