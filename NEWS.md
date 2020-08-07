@@ -1,5 +1,3 @@
-# epi.branch.sim 
+# epi.branch.sim v1.0.0 (10 August 2020)
 
-* Added a `NEWS.md` file to track changes to the package.
-
-0.9.5: Added `daily_constant` as an import option
+* First public GitHub release
