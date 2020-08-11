@@ -10,10 +10,10 @@ Every simulated case has disease and intervention parameters
 stochastically drawn from user-provided distributions. These parameters
 determine which secondary cases occur, which in turn create the next
 generation of cases. This simulation implements modelling of
-interventions such as: manual/conventional contact tracing, 
-app-based contact tracing usage and compliance, reduction of contacts
-through physical distancing, self-isolation of cases after certain
-conditions are met, and quarantine/isolation of new arrivals.
+interventions such as: \* manual/conventional contact tracing, \*
+app-based contact tracing usage and compliance, \* reduction of contacts
+through physical distancing, \* self-isolation of cases after certain
+conditions are met, and \* quarantine/isolation of new arrivals.
 
 This simulation also includes the option of adding new cases via
 importation, which may have different contact tracing and self-isolation
@@ -90,11 +90,13 @@ help(package='epi.branch.sim')
 
 ### Project Status
 
-This package is maturing. This is a public release of a tool well used
-within our team in order to share the tool more widely. At release, the
-package is functional, all of the intended features are working and
+This package is maturing. This is a public release of a tool regularly
+used within our team in order to share the tool more widely. At release,
+the package is functional, all of the intended features are working and
 documented. More features may be added based on usage and demand.
 Additional documentation and advanced use examples are also forthcoming.
+
+Plans to improve speed and efficiency are also in the works.
 
 ### Getting Help or Reporting an Issue
 
@@ -120,9 +122,11 @@ to abide by its terms.
 
     http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+    Unless required by applicable law or agreed to in writing, software 
+    distributed under the License is distributed on an "AS IS" BASIS, 
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and limitations under the License.
+    See the License for the specific language governing permissions and 
+    limitations under the License.
 
 ------------------------------------------------------------------------
 
