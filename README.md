@@ -33,7 +33,7 @@ Lancet Global Health* 2020; 8: E488–E496. DOI:
 To install this package along with the vignettes, use
 
 ``` r
-remotes::install_github("bcgov/epi.branch.sim", build_vignettes=TRUE)
+remotes::install_github("bcgov/epi.branch.sim", ref="main", build_vignettes=TRUE)
 ```
 
 ### Usage
