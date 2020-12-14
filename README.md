@@ -1,6 +1,8 @@
 epi.branch.sim
 ==============
 
+[![img](https://img.shields.io/badge/Lifecycle-Stable-97ca00)](https://github.com/bcgov/repomountie/blob/master/doc/lifecycle-badges.md)
+
 Simulates an epidemic outbreak with a stochastic branching process from
 a number of initial seed cases.
 
@@ -90,13 +92,11 @@ help(package='epi.branch.sim')
 
 ### Project Status
 
-This package is maturing. This is a public release of a tool regularly
+This package is stable. This is a public release of a tool regularly
 used within our team in order to share the tool more widely. At release,
 the package is functional, all of the intended features are working and
-documented. More features may be added based on usage and demand.
-Additional documentation and advanced use examples are also forthcoming.
-
-Plans to improve speed and efficiency are also in the works.
+documented. More features may be added based on usage and demand, but there
+are no current plans to continue development at this time.
 
 ### Getting Help or Reporting an Issue
 
